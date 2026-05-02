@@ -1,207 +1,358 @@
 ---
-title: Implementation Roadmap — LLM Wiki on Roam Research
+title: Implementation Roadmap — Cognitive Architecture on Roam Research
 type: analysis
 created: 2026-05-02
 updated: 2026-05-02
 sources: [CLAUDE.md, SKILL-thesis-ingest.md, information-flow-diagram.md]
-tags: [roadmap, implementation, roam, project-plan]
+tags: [roadmap, implementation, roam, cognitive-architecture, project-plan]
 ---
 
-# Implementation Roadmap — LLM Wiki on Roam Research
+# Implementation Roadmap — Cognitive Architecture on Roam Research
 
-Long-term, phased plan to build a thesis-research knowledge system on Roam Research, driven by Claude Code (then a persistent agent). Each phase ends with real usage on a real document. Customisation is driven by friction, not speculation.
+A self-referential research system: a cognitive architecture that studies cognitive architectures. Roam is the single source of truth. Each cognitive component is both a working piece of the system AND its own research track. The system improves itself through auto-research.
+
+---
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    ROAM RESEARCH GRAPH                       │
+│                  (single source of truth)                    │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │              OPERATIONAL LAYER                       │   │
+│  │         (the system that runs)                       │   │
+│  │                                                      │   │
+│  │  ┌────────────┐  ┌────────────┐  ┌──────────────┐   │   │
+│  │  │ Perception │  │   Memory   │  │  Reasoning   │   │   │
+│  │  │ (Ingest)   │  │ (Storage & │  │  (Query &    │   │   │
+│  │  │            │  │  Retrieval)│  │   Synthesis) │   │   │
+│  │  └─────┬──────┘  └─────┬──────┘  └──────┬───────┘   │   │
+│  │        │               │                │            │   │
+│  │  ┌─────┴──────┐  ┌─────┴──────┐  ┌──────┴───────┐   │   │
+│  │  │ Planning   │  │ Meta-      │  │ Auto-        │   │   │
+│  │  │ (Scaffold) │  │ Cognition  │  │ Research     │   │   │
+│  │  │            │  │ (Lint &    │  │ (Self-       │   │   │
+│  │  │            │  │  Audit)    │  │  Improvement)│   │   │
+│  │  └────────────┘  └────────────┘  └──────────────┘   │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │              REFLECTIVE LAYER                        │   │
+│  │      (the research that studies the system)          │   │
+│  │                                                      │   │
+│  │  One research track per component above:             │   │
+│  │  [[R/Perception]]  [[R/Memory]]  [[R/Reasoning]]    │   │
+│  │  [[R/Planning]]  [[R/Meta-Cognition]]  [[R/Auto-Res]]│   │
+│  │                                                      │   │
+│  │  Each track has: literature, ideas, experiments,     │   │
+│  │  findings, open questions, proposed improvements     │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │              INTEGRATION LAYER                       │   │
+│  │    (the thesis / scaffolding that ties it together)  │   │
+│  │                                                      │   │
+│  │  [[Scaffolding]] — top-level argument structure      │   │
+│  │  [[Overview]]    — what is this and why              │   │
+│  │  [[Glossary]]    — canonical terms                   │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                   GIT REPO (meta-layer)                      │
+│  Agent operating manuals, skills, diagrams, roadmap         │
+│  Versioned, diffable — the system's source code             │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                   AGENT (Claude Code → persistent)          │
+│  Reads git repo for instructions                            │
+│  Reads/writes Roam via MCP                                  │
+│  Executes workflows: ingest, query, lint, auto-research     │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## Guiding Principles
 
-1. **Ship the loop, not the system.** Each phase must close one complete cycle: input → process → output. A working loop you can feel beats a perfect schema you can't use.
-2. **Integrate before you build.** You have existing pieces. Fold them in early — they carry tacit knowledge about what you actually need.
-3. **Let Roam be Roam.** Don't replicate flat-file conventions. Use blocks, queries, backlinks, attributes natively. Adapt the pattern to the tool, not the reverse.
-4. **Plan the agent transition.** Every convention you establish now must work when Claude Code sessions become a persistent agent. Avoid session-dependent workflows.
+1. **Roam is the single source of truth.** Everything goes in, everything comes out. Local files (git) are operational scaffolding for the agent, not a parallel store.
+2. **Each component is dual-natured.** It works (operational) AND it's studied (reflective). Changes flow both ways: research findings improve the component, using the component generates research insights.
+3. **Ship the loop, not the system.** Each component must close one real cycle before you drill into its research track.
+4. **Integrate before you build.** You have existing ideas for each component. Consolidate them into Roam first — they carry tacit design knowledge.
+5. **Let Roam be Roam.** Blocks, backlinks, queries, attributes — use them natively. Don't replicate flat-file patterns.
+6. **Separation of concerns.** Operational layer, reflective layer, and integration layer are distinct namespaces in Roam. Changes to one don't silently break another.
 
 ---
 
-## Phase 0 — Inventory & Infrastructure (1 session)
+## The Six Components
 
-**Goal:** Know exactly what you have, set up the tooling bridge.
+Each component below is both a working piece of the system and a research track. The structure is identical for each:
 
-### Tasks
+- **Operational spec** — what the component does, its inputs/outputs, its current implementation
+- **Research track** — literature, your existing ideas, experiments, open questions
+- **Improvement loop** — how auto-research feeds back into the operational spec
 
-- [ ] **Audit existing pieces.** List every Roam page, document, template, and note you've already built. For each: what is it, where does it live, is it still current? Create a page `[[Migration Inventory]]` in Roam with this list.
-- [ ] **Set up Roam MCP server.** Install [2b3pro/roam-research-mcp](https://github.com/2b3pro/roam-research-mcp). Configure API token + graph name. Verify Claude Code can read and write to your graph.
-- [ ] **Choose namespace conventions.** Decide before writing anything:
-  - Source pages: `[[sources/slug]]` or `[[slug]]` + `#source` tag?
-  - Raw vs. wiki: `#raw` tag? Separate page prefix?
-  - Attributes: `type::`, `created::`, `contributo::`, `sources::`
-  - Document the decision in a `[[Conventions]]` page in Roam.
-- [ ] **Test the round-trip.** Have Claude Code create a test page in Roam via MCP, read it back, modify it, verify. Delete the test page. Confirm the tooling works end to end.
+### Component 1 — Perception (Ingestion)
 
-### Exit criterion
-Claude Code can read/write your Roam graph. You have a `[[Conventions]]` page and a `[[Migration Inventory]]` page.
+**What it does:** Takes a raw source (paper, article, conversation, note) and distils it into structured knowledge in Roam.
 
----
+**Operational inputs/outputs:**
+- Input: raw document (PDF, markdown, URL, pasted text)
+- Output: source page in Roam with structured layers, updated scaffolding, glossary terms
+- Current reference: `SKILL-thesis-ingest.md` (three-layer distillation)
 
-## Phase 1 — Minimal Viable Schema (1–2 sessions)
-
-**Goal:** Write the operating manual (CLAUDE.md equivalent) and the three foundational pages in Roam.
-
-### Tasks
-
-- [ ] **Write `CLAUDE.md` for Roam.** Adapt the operating manual from flat-file to Roam conventions. Store it both as a file in this repo (so Claude Code reads it at session start) AND as a `[[CLAUDE.md]]` page in Roam (so a future persistent agent can read it from the graph). Key sections to rewrite:
-  - Directory structure → namespace/tag conventions
-  - Page format → block structure template with attributes
-  - Cross-referencing → explain that backlinks are automatic, when to use `((block-ref))` vs. `[[page-ref]]`
-  - Workflows → adapted for MCP calls instead of file read/write
-  - Session start checklist → read `[[Scaffolding]]`, last Daily Note entries, `[[Glossary]]`
-- [ ] **Create `[[Scaffolding]]`** — the central thesis structure page. Start minimal:
-  - Research question (even if provisional)
-  - 3–5 chapter headings (even if placeholder)
-  - A `Sources integrated::` section (empty)
-  - A `Tensions::` section (empty)
-  - A `Gaps::` section (empty)
-- [ ] **Create `[[Glossary]]`** — one block per term, each with `definition::` and `source::` attributes. Seed with 5–10 terms you already use.
-- [ ] **Create `[[Overview]]`** — thesis synopsis in 10–15 blocks. Problem, hypothesis, contributions, stack.
-
-### Exit criterion
-Three foundational pages exist in Roam. `CLAUDE.md` is written and tested (Claude Code reads it, understands the conventions, can navigate your graph).
+**Research track `[[R/Perception]]`:**
+- How many distillation layers are optimal? Is three right or should it be adaptive?
+- What's lost in distillation? Can you measure information loss?
+- How should the "thesis context block" be structured to maximise relevance extraction?
+- How does the source type (empirical paper vs. theoretical, podcast vs. paper) change the ingest strategy?
+- Your existing ideas: _(to be consolidated from your notes)_
 
 ---
 
-## Phase 2 — First Real Ingest (1 session)
+### Component 2 — Memory (Storage & Retrieval)
 
-**Goal:** Push one real document through the full pipeline. This is the most important phase — it reveals what actually breaks.
+**What it does:** Structures, links, and retrieves compiled knowledge within Roam's graph.
 
-### Tasks
+**Operational inputs/outputs:**
+- Input: structured content from Perception, queries from Reasoning
+- Output: pages, blocks, backlinks, query results
+- Current implementation: Roam's native graph + Datalog queries via your custom MCP
 
-- [ ] **Pick your best existing document.** Choose something you already understand well — a paper you've already summarised, or one of your existing pieces. The goal is to test the pipeline, not to learn new content.
-- [ ] **Write the ingest skill for Roam.** Adapt `SKILL-thesis-ingest.md`:
-  - Three-layer distillation → three block sections under one source page (not three files)
-  - Structured extraction → attributes on blocks (`argomento-supportato::`, `gap-colmato::`, `posizione-scaffolding::`)
-  - Scaffolding update → add a block under the relevant chapter heading with `((block-ref))` back to the source page
-  - Glossary update → new term blocks with attributes
-  - Log → entry on today's Daily Note tagged `#ingest`
-- [ ] **Run the ingest with Claude Code.** Watch what breaks. Note every friction point.
-- [ ] **Integrate one existing piece.** Take something from your `[[Migration Inventory]]` and fold it into the new structure — either as a source page or as content that enriches the scaffolding.
-- [ ] **Friction log.** Write a `[[Friction Log]]` page in Roam: what was awkward, what took too long, what conventions didn't work, what you wished the agent did differently.
-
-### Exit criterion
-One source page exists with all three layers. Scaffolding has one real entry. Glossary has new terms. Daily Note has a log entry. You have a friction log.
+**Research track `[[R/Memory]]`:**
+- What's the optimal granularity: page-level, block-level, or attribute-level?
+- How should the namespace/tag system be structured for scalability?
+- When does Roam's backlink graph become noisy? What's the signal-to-noise tipping point?
+- How does memory decay work? Should old, uncited pages be flagged or archived?
+- Block references `((uid))` vs. page references `[[name]]` — when does each create better retrieval?
+- Your existing ideas: _(to be consolidated)_
 
 ---
 
-## Phase 3 — Refine the Loop (2–3 sessions)
+### Component 3 — Reasoning (Query & Synthesis)
 
-**Goal:** Ingest 3–5 more documents, fixing friction after each one. The schema stabilises through use.
+**What it does:** Answers questions by consulting compiled knowledge, synthesises across sources, produces new analysis.
 
-### Tasks
+**Operational inputs/outputs:**
+- Input: user question + wiki context (scaffolding, relevant pages, glossary)
+- Output: synthesised answer with citations, optionally archived as analysis page
+- Current reference: Query workflow in CLAUDE.md
 
-- [ ] **Ingest 3–5 documents sequentially.** After each:
-  - Update `[[Friction Log]]`
-  - Adjust CLAUDE.md or ingest skill if needed
-  - Refine the scaffolding structure (chapters may shift as real content arrives)
-- [ ] **Integrate remaining existing pieces.** Work through `[[Migration Inventory]]` — fold each item into the wiki structure or explicitly mark it as deprecated.
-- [ ] **Build the query workflow.** Ask Claude Code 2–3 real questions about your research. It should consult `[[Scaffolding]]` and source pages, synthesise an answer, and optionally archive it as an `[[analyses/...]]` page. Refine the query instructions in CLAUDE.md based on what works.
-- [ ] **Test the lint workflow.** Run a full lint pass. Check: do backlinks cover cross-references? Are there mentions without corresponding pages? Do terms match the glossary? Is the scaffolding consistent with source pages?
-- [ ] **Roam query templates.** Build 3–5 reusable Roam queries:
-  - All sources by `contributo::` value
-  - All open tensions
-  - All terms in glossary without a source page
-  - Recent ingest log entries
-  - Orphan pages (pages with no backlinks)
-
-### Exit criterion
-5+ source pages. Scaffolding has real structure. Query and lint workflows tested. CLAUDE.md is stable (no major rewrites between sessions). Friction log shows diminishing issues.
+**Research track `[[R/Reasoning]]`:**
+- When should reasoning use only compiled wiki content vs. going back to raw sources?
+- How do you evaluate reasoning quality without ground truth? (Same problem as the CDT thesis)
+- Multi-step reasoning: when should the agent decompose a question into sub-queries?
+- How does the order of pages read affect synthesis quality?
+- Can the system detect when it doesn't know enough to answer and request targeted ingest?
+- Your existing ideas: _(to be consolidated)_
 
 ---
 
-## Phase 4 — Thesis-Specific Customisation (2–3 sessions)
+### Component 4 — Planning (Scaffolding)
 
-**Goal:** Now that the generic loop works, tailor it to your specific thesis needs.
+**What it does:** Maintains the evolving argumentative structure — the central document that reflects what you know, what's missing, and where you're going.
 
-### Tasks
+**Operational inputs/outputs:**
+- Input: findings from Perception, Reasoning, and Meta-Cognition
+- Output: updated scaffolding with chapter structure, integrated sources, tensions, gaps, next steps
+- Current reference: `wiki/scaffolding-tesi.md`
 
-- [ ] **Concept pages.** Create pages for your core theoretical constructs (the things that appear across multiple sources). Each with: definition, related sources, tensions, how it fits in your argument.
-- [ ] **Comparative analyses.** Build 1–2 analysis pages that synthesise across sources: gap analyses, framework comparisons, positioning tables. Test whether the query workflow produces these naturally or if you need a dedicated `compare` skill.
-- [ ] **Scaffolding maturity.** By now the scaffolding should reflect your actual argument, not a placeholder. Review it end-to-end: is each chapter claim supported by at least one source? Are tensions explicitly tracked? Are gaps identified?
-- [ ] **Writing support workflow.** Test using the wiki to draft thesis sections. Ask Claude to draft a paragraph for Chapter 2 using only wiki content. Does the output cite sources correctly? Is the glossary respected? Add a `draft` workflow to CLAUDE.md if useful.
-- [ ] **Custom entity types.** Do you need entities beyond source/concept/analysis? (e.g., `method`, `dataset`, `tool`, `argument`). Add only what real usage has shown you need.
-
-### Exit criterion
-The wiki is actively useful for thesis writing, not just knowledge storage. You can ask a question and get an answer grounded in your compiled sources. The scaffolding is a real document you'd show your advisor.
-
----
-
-## Phase 5 — Agent Transition (1–2 sessions)
-
-**Goal:** Move from Claude Code sessions to a persistent agent that maintains the wiki continuously.
-
-### Tasks
-
-- [ ] **Evaluate persistent agent options.** At this point assess:
-  - Claude with MCP (long-running session with Roam MCP server)
-  - Custom agent via Claude API + Roam API (your own orchestration)
-  - Roam-native AI (Live AI Assistant extension) for lighter tasks
-  - Decide on architecture: one persistent agent or specialised agents (ingest agent, query agent, lint agent)?
-- [ ] **Extract session-dependent patterns.** Review CLAUDE.md for anything that assumes a Claude Code session (file reads, bash commands, session start checklist). Replace with MCP-native or API-native equivalents.
-- [ ] **Build the persistent loop.** The agent should be able to:
-  - Wake up and read `[[Scaffolding]]` + recent Daily Notes to orient itself
-  - Accept ingest commands (via a trigger page, a queue, or direct chat)
-  - Run periodic lint passes (daily? weekly?)
-  - Respond to queries asynchronously
-- [ ] **Test continuity.** Ingest a document with the persistent agent. Verify it produces the same quality output as the Claude Code sessions. Check that the conventions, glossary, and scaffolding discipline hold.
-- [ ] **Handoff document.** Write a `[[Agent Handoff]]` page: what the agent must know, what conventions are non-negotiable, what's still evolving. This replaces CLAUDE.md for the persistent agent.
-
-### Exit criterion
-The persistent agent can run the full loop (ingest, query, lint) without manual intervention beyond providing the source document. CLAUDE.md and Agent Handoff page are in sync.
+**Research track `[[R/Planning]]`:**
+- How should the scaffolding evolve? Append-only (current) vs. periodic restructuring?
+- When does the scaffolding become too large to be useful? Should it have a summary layer?
+- How do you detect when the argument has structurally shifted (not just added to)?
+- Can the scaffolding auto-suggest what to research next based on gap analysis?
+- Tension tracking: how do you resolve tensions, not just accumulate them?
+- Your existing ideas: _(to be consolidated)_
 
 ---
 
-## Phase 6 — Compound & Extend (ongoing)
+### Component 5 — Meta-Cognition (Lint & Audit)
 
-**Goal:** The system is running. Now it grows with your research.
+**What it does:** The system's self-awareness — audits the wiki for consistency, completeness, contradictions, and decay.
 
-### Ongoing tasks
+**Operational inputs/outputs:**
+- Input: full graph state
+- Output: list of issues (contradictions, orphans, unsupported claims, glossary drift), proposed fixes
+- Current reference: Lint workflow in CLAUDE.md
 
-- [ ] **Regular ingests.** Each new paper, call, or note goes through the pipeline. The wiki compounds.
-- [ ] **Weekly lint.** Agent runs a consistency check. You review and approve fixes.
-- [ ] **Monthly scaffolding review.** Step back and read the scaffolding as a whole. Does it still reflect your argument? Flag sections that have drifted.
-- [ ] **Thesis drafting.** Use query + draft workflows to write chapters directly from wiki content.
-- [ ] **Evolve the schema.** As your needs change, update CLAUDE.md / Agent Handoff. Version these changes in git so you can trace how your system evolved.
-
-### Possible extensions (only if real need emerges)
-
-- Multi-graph: separate graphs for different research areas, linked via a meta-index
-- Collaboration: shared graph with advisor, agent-mediated
-- Export pipeline: Roam → LaTeX/Word for thesis submission
-- Fine-tuned prompts: specialised ingest prompts per document type (empirical paper vs. theoretical, survey vs. case study)
+**Research track `[[R/Meta-Cognition]]`:**
+- What types of inconsistency can an LLM reliably detect vs. what it misses?
+- How often should lint run? Continuous vs. periodic?
+- Can the system detect its own blind spots (unknown unknowns)?
+- How do you distinguish "productive tension" (worth keeping) from "real contradiction" (needs fixing)?
+- Should lint be one monolithic pass or specialised sub-audits?
+- Your existing ideas: _(to be consolidated)_
 
 ---
 
-## Timeline Estimate
+### Component 6 — Auto-Research (Self-Improvement)
 
-| Phase | Sessions | Calendar time | Depends on |
-|---|---|---|---|
-| 0 — Inventory & Infra | 1 | Day 1 | — |
-| 1 — Minimal Schema | 1–2 | Days 2–3 | Phase 0 |
-| 2 — First Ingest | 1 | Day 4 | Phase 1 |
-| 3 — Refine Loop | 2–3 | Week 2 | Phase 2 |
-| 4 — Thesis Customisation | 2–3 | Week 3 | Phase 3 |
-| 5 — Agent Transition | 1–2 | Week 4 | Phase 4 |
-| 6 — Compound | Ongoing | Week 5+ | Phase 5 |
+**What it does:** The system researches how to improve its own components. Searches for relevant literature, tests alternatives, proposes upgrades.
 
-**Realistic total to a working, customised system: ~4 weeks of part-time work.**
+**Operational inputs/outputs:**
+- Input: friction log, research track open questions, performance observations
+- Output: proposed changes to operational specs, new literature to ingest, experiment designs
+- This is the component that doesn't exist yet in the reference repo — it's your addition.
+
+**Research track `[[R/Auto-Research]]`:**
+- How do you scope auto-research so it doesn't spiral? (Researching research about researching...)
+- What triggers auto-research: explicit command, friction threshold, scheduled?
+- How do you evaluate whether a proposed improvement actually helps?
+- Can the system A/B test its own components (e.g., two different ingest strategies on the same paper)?
+- How do you prevent the system from over-optimising one component at the expense of others?
+- Your existing ideas: _(to be consolidated)_
 
 ---
 
-## What to track in this repo
+## Implementation Sequence
 
-This GitHub repo serves as the **meta-layer** for the project:
+Unlike the previous linear roadmap, this is **hub-and-spoke**: a short bootstrap phase, then parallel component tracks.
 
-- `CLAUDE.md` — operating manual (versioned, diffable)
-- `SKILL-thesis-ingest.md` — ingest skill (versioned, diffable)
-- `implementation-roadmap.md` — this file (update as you complete phases)
-- `information-flow-diagram.md` — architecture reference
-- Friction logs and decisions: commit messages document why conventions changed
+### Phase 0 — Bootstrap (2–3 sessions)
 
-The Roam graph holds the **live knowledge**. This repo holds the **system design**. Both evolve, but they serve different purposes.
+**Goal:** Get the minimal loop running so every component has something real to work with.
+
+- [ ] **0.1 — Roam MCP verification.** Confirm your custom MCP server works with Claude Code. Test read, write, query, create page, create block.
+- [ ] **0.2 — Namespace conventions.** Decide and document in `[[Conventions]]`:
+  - Operational pages: `[[Perception]]`, `[[Memory]]`, `[[Reasoning]]`, `[[Planning]]`, `[[Meta-Cognition]]`, `[[Auto-Research]]`
+  - Research tracks: `[[R/Perception]]`, `[[R/Memory]]`, etc.
+  - Sources: `[[S/slug]]` or `#source` tag
+  - Attributes: `type::`, `component::`, `status::`, `created::`
+- [ ] **0.3 — Consolidate existing ideas.** For each of the 6 components, create the research track page in Roam and dump your existing ideas, notes, and references into it. Unstructured is fine — this is the raw material.
+- [ ] **0.4 — Minimal scaffolding.** Create `[[Scaffolding]]` with:
+  - Top-level research question: "How does a self-referential cognitive architecture study and improve its own components?"
+  - Six component sections (one per component, placeholder content)
+  - A meta-section: "What connects the components? What's the overall argument?"
+- [ ] **0.5 — First ingest.** Pick one document (a paper about cognitive architectures, or one of your existing pieces) and push it through a manual ingest. Create the source page, update the scaffolding, add glossary terms. Don't worry about perfection — the goal is to close the loop once.
+- [ ] **0.6 — Write CLAUDE.md for Roam.** Based on what you learned in 0.5, write the operating manual. Store in git repo (for Claude Code) and as `[[CLAUDE.md]]` in Roam (for future persistent agent).
+
+**Exit criterion:** The loop works end to end. Six research track pages exist with your raw ideas. Scaffolding has real content. CLAUDE.md is written.
+
+---
+
+### Phase 1 — Component Tracks (parallel, ongoing)
+
+After bootstrap, each component becomes an independent track. Work on whichever feels most productive or has the most friction. The structure for each track is the same:
+
+```
+For component X:
+
+1. OPERATE — Use the current version of X on real content
+2. OBSERVE — Note friction, failures, surprises in [[Friction Log]]
+3. RESEARCH — Read/ingest relevant literature into [[R/X]]
+4. HYPOTHESISE — Propose a specific improvement to X
+5. TEST — Try the improvement on the next real task
+6. INTEGRATE — If it works, update the operational spec
+7. REFLECT — Update [[Scaffolding]] with what you learned
+```
+
+Each track can proceed at its own pace. Some will move fast (Perception — you'll ingest many documents). Some will be slow and deep (Auto-Research — conceptually hardest).
+
+#### Suggested starting order (based on dependency)
+
+1. **Perception first** — you need content in the system before other components have anything to work with
+2. **Memory second** — as content accumulates, retrieval quality becomes the bottleneck
+3. **Reasoning third** — once memory is populated, test synthesis quality
+4. **Planning fourth** — as reasoning produces insights, the scaffolding needs to absorb them
+5. **Meta-Cognition fifth** — enough content exists for lint to find real issues
+6. **Auto-Research sixth** — the system is mature enough to study itself
+
+But you can jump between tracks whenever friction or curiosity pulls you.
+
+---
+
+### Phase 2 — Agent Transition (when ready)
+
+**Trigger:** You've gone through 2–3 cycles of the component tracks and CLAUDE.md is stable.
+
+- [ ] **2.1 — Extract session dependencies.** Identify what in CLAUDE.md assumes Claude Code (file reads, bash, session start). Replace with MCP-native equivalents.
+- [ ] **2.2 — Build persistent agent.** Options:
+  - Claude API + your Roam MCP (custom orchestration)
+  - Specialised agents per component (ingest agent, query agent, lint agent)
+  - Single agent with component-aware routing
+- [ ] **2.3 — Handoff document.** Write `[[Agent Handoff]]` in Roam: non-negotiable conventions, current state of each component, what's still evolving.
+- [ ] **2.4 — Test continuity.** Run the same task (ingest, query, lint) on both Claude Code and persistent agent. Compare quality.
+
+---
+
+### Phase 3 — Compound (ongoing)
+
+The system runs. Each ingest, query, and lint pass is simultaneously:
+- An operational act (knowledge gets compiled)
+- A research data point (you observe how the component performs)
+- A potential trigger for auto-research (friction → improvement hypothesis)
+
+The scaffolding evolves from "what do I know about cognitive architectures" to "what have I learned by building and studying one."
+
+---
+
+## Roam Page Structure Reference
+
+```
+Roam Graph
+├── [[Conventions]]              — namespace rules, attribute schema
+├── [[CLAUDE.md]]                — operating manual (mirror of git file)
+├── [[Scaffolding]]              — central argument structure
+├── [[Overview]]                 — what this is and why
+├── [[Glossary]]                 — canonical terms
+├── [[Friction Log]]             — ongoing friction observations
+│
+├── Operational Pages
+│   ├── [[Perception]]           — current ingest spec
+│   ├── [[Memory]]               — current storage/retrieval spec
+│   ├── [[Reasoning]]            — current query/synthesis spec
+│   ├── [[Planning]]             — current scaffolding spec
+│   ├── [[Meta-Cognition]]       — current lint/audit spec
+│   └── [[Auto-Research]]        — current self-improvement spec
+│
+├── Research Tracks
+│   ├── [[R/Perception]]         — literature, ideas, experiments
+│   ├── [[R/Memory]]             — literature, ideas, experiments
+│   ├── [[R/Reasoning]]          — literature, ideas, experiments
+│   ├── [[R/Planning]]           — literature, ideas, experiments
+│   ├── [[R/Meta-Cognition]]     — literature, ideas, experiments
+│   └── [[R/Auto-Research]]      — literature, ideas, experiments
+│
+├── Sources
+│   ├── [[S/paper-slug-1]]       — distilled source page
+│   ├── [[S/paper-slug-2]]       — distilled source page
+│   └── ...
+│
+├── Concepts
+│   ├── [[C/concept-name]]       — theoretical construct page
+│   └── ...
+│
+├── Analyses
+│   ├── [[A/analysis-name]]      — synthesised output
+│   └── ...
+│
+└── Daily Notes                  — log entries tagged #ingest #query #lint
+```
+
+---
+
+## Git Repo Structure
+
+```
+cognitive-digital-twins/
+├── CLAUDE.md                    — operating manual (canonical, versioned)
+├── SKILL-thesis-ingest.md       — ingest skill definition
+├── implementation-roadmap.md    — this file
+├── information-flow-diagram.md  — architecture diagrams
+├── skills/                      — additional skill definitions as they emerge
+│   ├── SKILL-query.md
+│   ├── SKILL-lint.md
+│   └── SKILL-auto-research.md
+└── archive/                     — reference material from original repo
+    └── (original raw/ and wiki/ if useful for reference)
+```
+
+---
+
+## What to do right now
+
+Start Phase 0.3: **Consolidate your existing ideas.** Tell me about the ideas you already have for each component, and I'll help you structure them into the research track pages. This is the most valuable bootstrap step — it captures the tacit knowledge that will shape everything else.
