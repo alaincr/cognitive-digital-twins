@@ -1,0 +1,27 @@
+name: memory-builder
+role: ic
+display_name: "Memory Builder"
+reports_to: memory-lead
+adapter:
+  type: claude_local
+  config:
+    model: claude-sonnet-4-6
+    cwd: "."
+    instructionsFilePath: "./agents/memory/memory-builder/soul.md"
+    maxTurnsPerRun: 25
+    timeoutSec: 360
+    env:
+      ANTHROPIC_API_KEY:
+        secret_ref: ANTHROPIC_API_KEY
+heartbeat:
+  interval: "0 8,11,14,17 * * *"  # 4x daily
+  instructionsFilePath: "./agents/memory/memory-builder/heartbeat.md"
+permissions:
+  - roam_mcp:read
+  - roam_mcp:write
+  - filesystem:read
+  - filesystem:write
+  - code:execute
+tools:
+  - roam_mcp
+  - code_execution
