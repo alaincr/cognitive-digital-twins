@@ -1,0 +1,23 @@
+name: cross-team-reviewer
+role: ic
+display_name: "Cross-Team Reviewer"
+reports_to: integration-director
+adapter:
+  type: claude_local
+  config:
+    model: claude-sonnet-4-6
+    cwd: "."
+    instructionsFilePath: "./agents/coordination/cross-team-reviewer/soul.md"
+    maxTurnsPerRun: 15
+    timeoutSec: 240
+    env:
+      ANTHROPIC_API_KEY:
+        secret_ref: ANTHROPIC_API_KEY
+heartbeat:
+  interval: "0 14 * * *"  # daily afternoon
+  instructionsFilePath: "./agents/coordination/cross-team-reviewer/heartbeat.md"
+permissions:
+  - roam_mcp:read
+  - filesystem:read
+tools:
+  - roam_mcp

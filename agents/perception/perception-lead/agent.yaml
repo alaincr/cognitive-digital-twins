@@ -1,0 +1,24 @@
+name: perception-lead
+role: manager
+display_name: "Perception Lead"
+reports_to: chief-architect
+adapter:
+  type: claude_local
+  config:
+    model: claude-sonnet-4-6
+    cwd: "."
+    instructionsFilePath: "./agents/perception/perception-lead/soul.md"
+    maxTurnsPerRun: 15
+    timeoutSec: 240
+    env:
+      ANTHROPIC_API_KEY:
+        secret_ref: ANTHROPIC_API_KEY
+heartbeat:
+  interval: "0 9,15 * * *"  # twice daily
+  instructionsFilePath: "./agents/perception/perception-lead/heartbeat.md"
+permissions:
+  - roam_mcp:read
+  - roam_mcp:write
+  - filesystem:read
+tools:
+  - roam_mcp

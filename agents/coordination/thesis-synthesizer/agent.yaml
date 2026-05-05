@@ -1,0 +1,24 @@
+name: thesis-synthesizer
+role: ic
+display_name: "Thesis Synthesizer"
+reports_to: integration-director
+adapter:
+  type: claude_local
+  config:
+    model: claude-sonnet-4-6
+    cwd: "."
+    instructionsFilePath: "./agents/coordination/thesis-synthesizer/soul.md"
+    maxTurnsPerRun: 20
+    timeoutSec: 300
+    env:
+      ANTHROPIC_API_KEY:
+        secret_ref: ANTHROPIC_API_KEY
+heartbeat:
+  interval: "0 20 * * *"  # daily evening
+  instructionsFilePath: "./agents/coordination/thesis-synthesizer/heartbeat.md"
+permissions:
+  - roam_mcp:read
+  - roam_mcp:write
+  - filesystem:read
+tools:
+  - roam_mcp

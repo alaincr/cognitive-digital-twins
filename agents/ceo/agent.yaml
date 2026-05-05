@@ -1,0 +1,23 @@
+name: chief-architect
+role: ceo
+display_name: "Chief Architect"
+adapter:
+  type: claude_local
+  config:
+    model: claude-sonnet-4-6
+    cwd: "."
+    instructionsFilePath: "./agents/ceo/soul.md"
+    maxTurnsPerRun: 20
+    timeoutSec: 300
+    env:
+      ANTHROPIC_API_KEY:
+        secret_ref: ANTHROPIC_API_KEY
+heartbeat:
+  interval: "0 9 * * *"  # daily at 9am
+  instructionsFilePath: "./agents/ceo/heartbeat.md"
+permissions:
+  - roam_mcp:read
+  - roam_mcp:write
+  - filesystem:read
+tools:
+  - roam_mcp

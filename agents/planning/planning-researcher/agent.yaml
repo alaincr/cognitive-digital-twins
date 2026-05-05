@@ -1,0 +1,28 @@
+name: planning-researcher
+role: ic
+display_name: "Planning Researcher"
+reports_to: planning-lead
+adapter:
+  type: claude_local
+  config:
+    model: claude-sonnet-4-6
+    cwd: "."
+    instructionsFilePath: "./agents/planning/planning-researcher/soul.md"
+    maxTurnsPerRun: 20
+    timeoutSec: 300
+    env:
+      ANTHROPIC_API_KEY:
+        secret_ref: ANTHROPIC_API_KEY
+heartbeat:
+  interval: "0 8,11,14,17 * * *"  # 4x daily
+  instructionsFilePath: "./agents/planning/planning-researcher/heartbeat.md"
+permissions:
+  - roam_mcp:read
+  - roam_mcp:write
+  - filesystem:read
+  - web:search
+  - web:fetch
+tools:
+  - roam_mcp
+  - web_search
+  - web_fetch
