@@ -930,6 +930,13 @@ def cmd_apply(args) -> int:
     ledger = Ledger(args.ledger)
     daily = roam_date(args.date) if args.date else roam_date(
         time.strftime("%Y-%m-%d", time.gmtime()))
+    # The consolidator's orders don't carry cycle_date (it doesn't know the
+    # Roam daily-note title format); fill it at apply time so templates
+    # render `cycle:: [[July 4th, 2026]]` instead of `[[?]]`.
+    for o in orders:
+        f = o.get("content", {}).get("fields")
+        if isinstance(f, dict):
+            f.setdefault("cycle_date", daily)
     planned = plan(orders, ledger, daily, budget=args.max_writes,
                    quarantine=args.quarantine)
     if planned["refused"]:

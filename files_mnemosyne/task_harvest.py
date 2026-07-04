@@ -436,13 +436,17 @@ def next_budget_factor(rate: float, current: float) -> float:
 
 
 _DWELL_DAYS = 7
+_MIN_GENERATED = 3   # below this, the window's rate is noise, not a signal
 
 
-def next_state(state: dict, rate: float, now: _dt.datetime) -> dict:
+def next_state(state: dict, rate: float, now: _dt.datetime,
+               n_generated: Optional[int] = None) -> dict:
     """PURE anti-fatigue state machine (ANNEX B3 §4). Closes the FR-4 loop:
     stats --apply-state persists this into taskgen_state.json, which
     task_gen generate --state then reads.
 
+      n_generated < 3      -> no transition (0/0 on the first cycles is not
+                              owner fatigue — don't start half-throttled)
       rate < 0.5           -> factor 0.5 (since = first drop, ok_since reset)
       rate >= 0.5 @ 1.0    -> stay 1.0
       rate >= 0.5 @ 0.5    -> start/continue ok_since dwell; restore to 1.0
@@ -453,6 +457,8 @@ def next_state(state: dict, rate: float, now: _dt.datetime) -> dict:
     ok_since = state.get("ok_since")
     now_iso = now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
+    if n_generated is not None and n_generated < _MIN_GENERATED:
+        return {"budget_factor": factor, "since": since, "ok_since": ok_since}
     if rate < 0.5:
         return {"budget_factor": 0.5,
                 "since": since if factor == 0.5 else now_iso,
@@ -481,7 +487,8 @@ def cmd_stats(args) -> dict:
                else {"budget_factor": 1.0, "since": None, "ok_since": None})
         new = next_state(cur, stats["response_rate"],
                          _dt.datetime.now(_dt.timezone.utc)
-                         .replace(tzinfo=None))
+                         .replace(tzinfo=None),
+                         n_generated=stats["generated"])
         sp.parent.mkdir(parents=True, exist_ok=True)
         sp.write_text(json.dumps(new, ensure_ascii=False) + "\n",
                       encoding="utf-8")
@@ -631,6 +638,10 @@ def _self_test() -> None:
     s5 = next_state(dict(s2), 0.7, d0 + _dt.timedelta(days=9))
     ok(s5["budget_factor"] == 1.0,
        "next_state: >=7 days of >=50% restores factor 1.0")
+    s6 = next_state(s0, 0.0, d0, n_generated=0)
+    ok(s6["budget_factor"] == 1.0,
+       "next_state: 0 generated tasks -> NO transition (first-cycle 0/0 "
+       "is not fatigue)")
 
     # ---- route join (B3<->B4 seam): ledger primary, refs:: fallback --------
     routes = {tid("triage|note2"): {"uid": "note2"},

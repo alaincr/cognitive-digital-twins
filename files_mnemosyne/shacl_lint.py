@@ -85,8 +85,15 @@ def export_roam(export_path: pathlib.Path, plant_violation: bool) -> List[dict]:
 
 def load_shapes_graph(shapes_dir: pathlib.Path):
     from rdflib import Graph
+    # A linter that silently validates against ZERO shapes reports "conforms"
+    # on anything — the worst failure mode. Missing dir / no .ttl = fatal.
+    ttls = sorted(shapes_dir.glob("*.ttl"))
+    if not ttls:
+        raise FileNotFoundError(
+            f"no shape files (*.ttl) found in {shapes_dir}/ — refusing to "
+            f"lint against an empty shapes graph (a vacuous 'conforms')")
     sg = Graph()
-    for ttl in sorted(shapes_dir.glob("*.ttl")):
+    for ttl in ttls:
         sg.parse(ttl, format="turtle")
     return sg
 
