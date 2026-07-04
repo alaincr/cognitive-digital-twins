@@ -16,3 +16,6 @@ ops/logs/
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Clojure classpath cache (local)
+.cpcache/
