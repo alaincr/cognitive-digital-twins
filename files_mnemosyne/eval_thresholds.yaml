@@ -1,0 +1,58 @@
+# eval_thresholds.yaml — every threshold + its ATTACHED DECISION.
+#
+# PRD_B7 §7 DoD: "un seuil sans décision attachée est du décor." Thresholds
+# live here, NOT hardcoded in eval_harness.py. When a threshold is crossed the
+# harness emits an alert carrying `decision` verbatim into weekly_report
+# (§ Alertes) and into the B2 Monday digest (kind: digest, notes).
+
+# ---- E1 · judgment health -------------------------------------------------
+e1:
+  # Abstention/gate verdict buckets (ANNEX_B7 §1). N-TOO-SMALL when n < 50.
+  abstention_gate:
+    n_min: 50                       # below this: N-TOO-SMALL, gates unreadable
+    healthy_lo: 0.10                # 0.10 <= rate < 0.35  -> HEALTHY
+    healthy_hi: 0.35
+    usable_hi: 0.60                 # 0.35 <= rate < 0.60  -> USABLE-EXPENSIVE
+    # rate < 0.10 -> SUSPICIOUS-LOW ; rate >= 0.60 -> UNINFORMATIVE
+    decisions:
+      SUSPICIOUS-LOW: "Audit calset/live leakage and q-hat sanity before trusting the low abstention."
+      HEALTHY: "Proceed as-is; judge is in the operating band."
+      USABLE-EXPENSIVE: "Discuss alpha=0.10-with-panel or a larger judge in Phase 2."
+      UNINFORMATIVE: "Judge is useless at this rate — recalibrate or change model. Inspect 20 abstentions."
+      N-TOO-SMALL: "Gather more judged volume (n>=50) before reading the gate."
+  # Anchor-agreement drift alert.
+  anchor_agreement:
+    drop_weeks: 2                   # falling 2 consecutive weeks
+    decision: "Anchor agreement is drifting — re-sample gold and re-check the judge against the anchor."
+
+# ---- E2 · seeded-contradiction detection ----------------------------------
+e2:
+  detection:
+    max_age_cycles: 3               # a contradiction still PENDING past this is late
+    min_detected_frac: 0.60         # < 60% of 15 detected within max_age_cycles
+    decision: "Detection is under target — the harvest->judge->consolidator path is missing planted opposes edges; inspect prefilter budget and edge_type calibration."
+  false_positives:
+    max_on_controls: 0              # any opposes/S2 on a control pair is a false positive
+    decision: "A control pair was flagged as opposing — the pipeline over-detects contradictions; tighten edge_type gate before trusting E4 churn."
+
+# ---- E3 · retrieval coverage ----------------------------------------------
+e3:
+  marginal_graph_value:
+    min_marginal: 0.0               # coverage(c \\ a) — promoted graph must add > 0
+    decision: "The promoted graph adds no retrieval value over the flat file this week — the substrate is not yet earning its keep; review edge promotion volume."
+
+# ---- E4 · stance stability ------------------------------------------------
+e4:
+  churn:
+    max_share: 0.20                 # churn > 20% of diffs over 2 weeks
+    window_weeks: 2
+    decision: "Stance churn exceeds 20% over two weeks — the system is undoing its own work; freeze re-judgment and inspect retraction causes."
+
+# ---- E5 · human loop ------------------------------------------------------
+e5:
+  response_rate:
+    min_rate_7d: 0.50               # 7-day response rate floor (mirrors B3 anti-fatigue)
+    decision: "Human response rate has collapsed below 50% — every downstream metric becomes noise; reduce task budget and check task surface friction."
+  elaboration_coverage:
+    min_coverage: 0.30              # per-train elaboration coverage floor
+    decision: "Elaboration coverage is thin — the human-gold fuel for future distillation is drying up; prioritise elaborate tasks."

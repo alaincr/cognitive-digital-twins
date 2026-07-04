@@ -1,0 +1,29 @@
+flowchart TB
+  classDef rung fill:#ebf8ff,stroke:#2b6cb0,stroke-width:2px
+  classDef hot fill:#e9d8fd,stroke:#805ad5,stroke-width:2px
+  classDef pre fill:#fefcbf,stroke:#975a16
+  classDef log fill:#c6f6d5,stroke:#2f855a,stroke-width:2px
+
+  PF["PRE-FILTER (formal layer)<br/>activation · surprisal · dirty-marks<br/>budgeted, debounced candidates"]:::pre
+
+  A["A · heuristics<br/>Datalog rules, exact matches"]:::rung
+  B["B · classifiers<br/>kNN embeddings, relational GNN scorer"]:::rung
+  B5["B½ · small-LLM judges (4-8B local)<br/>closed labels · constrained decoding ·<br/>logprob confidence → conformal gate"]:::hot
+  C["C · anchor LLM<br/>panel arbiter · summary writer"]:::rung
+  LOG[("append-only event log<br/>judgments = typed facts +<br/>provenance envelope")]:::log
+
+  PF --> A
+  A -->|"abstain → escalate"| B
+  B -->|"abstain → escalate"| B5
+  B5 -->|"abstain → escalate"| C
+  A --> LOG
+  B --> LOG
+  B5 --> LOG
+  C -->|"verdict is a judgment too"| LOG
+
+  C -.->|"traces distill to judges"| B5
+  B5 -.->|"stable behavior compiles to classifiers"| B
+  B -.->|"stable patterns compile to rules"| A
+
+  GRAV["DISTILLATION GRAVITY<br/>self-improvement = re-pricing<br/>cognition downward"]
+  C -.- GRAV

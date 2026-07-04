@@ -1,0 +1,29 @@
+# eval_questions.yaml — E3 retrieval benchmark (OWNER-FILLED TEMPLATE).
+#
+# ANTI-EASY-BENCHMARK RULE (PRD_B7 §8 / ANNEX_B7 §7):
+#   The 15–25 questions below MUST be written by the graph owner ALONE and
+#   BEFORE inspecting the graph. Do NOT invent questions to make retrieval
+#   look good, and do NOT pick questions by first searching the graph for
+#   easy hits. Half RGPD, half thèse. Once written, this file is FROZEN:
+#   set `frozen:` to the authoring date and never edit a question afterwards.
+#   Editing gold_uids after the owner rewrites/moves a block is allowed
+#   (check-seeded / retrieval reports orphaned gold rather than failing).
+#
+# Schema (one list item per question):
+#   id:        stable slug, e.g. q-rgpd-03 / q-these-05
+#   question:  the natural-language question, exactly as the owner would ask it
+#   gold_uids: list of Roam block uids that SHOULD ground the answer
+#              (anchored in the real graph, filled after questions are frozen)
+#   domain:    rgpd | these
+#   frozen:    YYYY-MM-DD authoring date (BEFORE graph inspection)
+#
+# Example (illustrative only — DELETE before filling, do not ship as a real row):
+#   - id: q-rgpd-03
+#     question: "Quelles bases légales avons-nous retenues pour la prospection B2B ?"
+#     gold_uids: ["aBc123", "dEf456"]
+#     domain: rgpd
+#     frozen: 2026-07-11
+#
+# The dev ships this file EMPTY. The owner fills the list below.
+
+questions: []

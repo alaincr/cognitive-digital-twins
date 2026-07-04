@@ -1,0 +1,66 @@
+// Mnemosyne stack — render: dot -Tsvg stack.dot -o stack.svg
+digraph mnemosyne {
+  rankdir=TB; compound=true; labelloc="t"; fontsize=20; fontname="Helvetica-Bold";
+  label="Mnemosyne — recursive inference over an event-sourced, bitemporal Datalog substrate";
+  node [fontname="Helvetica", fontsize=11];
+  edge [fontname="Helvetica", fontsize=9, color="#555555"];
+  graph [nodesep=0.35, ranksep=0.6, bgcolor="white"];
+
+  // ----------------------- L1: Recursive inference (RLM) -----------------------
+  subgraph cluster_L1 {
+    label="L1 · Recursive inference  (RLM)   —   adaptive compute, unbounded I/O";
+    fontsize=13; style="rounded,filled"; fillcolor="#faf5ff"; color="#805ad5"; penwidth=2;
+    root [label="root model\nsees only metadata", shape=box, style="rounded,filled", fillcolor="#e9d8fd"];
+    repl [label="REPL over the graph\npeek / decompose = Datalog queries", shape=box, style="rounded,filled", fillcolor="white"];
+    sub  [label="recursive sub-calls on slices\nΩ(|P|) leaves, results → facts", shape=box, style="rounded,filled", fillcolor="white"];
+    fin  [label="output assembled in\nvariables, written as facts", shape=box, style="rounded,filled", fillcolor="white"];
+    root -> repl -> sub -> fin [color="#805ad5"];
+    sub  -> repl [label="recurse", style=dashed, color="#805ad5", constraint=false];
+  }
+
+  // ----------------------- L2: Event-sourced runtime (ActiveGraph) --------------
+  subgraph cluster_L2 {
+    label="L2 · Event-sourced runtime  (ActiveGraph)   —   no orchestrator, control flow emerges";
+    fontsize=13; style="rounded,filled"; fillcolor="#ebf8ff"; color="#2b6cb0"; penwidth=2;
+    behav [label="behaviors\nsubscribe to graph-shape patterns", shape=box, style="rounded,filled", fillcolor="white"];
+    fixp  [label="reactive FIXPOINT loop\n= lint loop = semi-naïve eval", shape=box, style="rounded,filled", fillcolor="#bee3f8"];
+    proj  [label="projection = fold(log)\n(the working graph)", shape=box, style="rounded,filled", fillcolor="#bee3f8"];
+    cache [label="content-addressed\nmodel/tool response cache", shape=box, style="rounded,filled", fillcolor="white"];
+    behav -> fixp [color="#2b6cb0"];
+    proj  -> behav [label="read", style=dashed, color="#2b6cb0"];
+  }
+
+  // ----------------------- L3: Bitemporal Datalog store -------------------------
+  subgraph cluster_L3 {
+    label="L3 · Immutable, bitemporal Datalog store  (Datomic / XTDB)   —   recursion + time travel + provenance, for free";
+    fontsize=13; style="rounded,filled"; fillcolor="#f0fff4"; color="#2f855a"; penwidth=2;
+    log   [label="APPEND-ONLY EVENT LOG\nthe source of truth", shape=cylinder, style=filled, fillcolor="#9ae6b4"];
+    facts [label="immutable datoms\nE · A · V · T · Op", shape=box, style="rounded,filled", fillcolor="white"];
+    rules [label="recursive Datalog rules\n(transitive closure)", shape=box, style="rounded,filled", fillcolor="white"];
+    tt    [label="time travel & fork\nas-of · with · history", shape=box, style="rounded,filled", fillcolor="white"];
+    prov  [label="reified-tx provenance\nlineage = a query", shape=box, style="rounded,filled", fillcolor="white"];
+    log -> facts [color="#2f855a"];
+    facts -> rules [color="#2f855a"]; facts -> tt [color="#2f855a"]; facts -> prov [color="#2f855a"];
+  }
+
+  // ----------------------- cross-layer flows ------------------------------------
+  repl  -> rules [lhead=cluster_L3, label="query the graph"];
+  sub   -> log   [lhead=cluster_L3, label="append sub-results as facts"];
+  fin   -> log   [label="append output as facts"];
+  behav -> rules [label="graph-shape match"];
+  fixp  -> log   [label="emit events"];
+  cache -> log   [style=dashed];
+  log   -> proj  [label="fold / replay", color="#2b6cb0", constraint=false];
+  fixp  -> repl  [style=dotted, label="behaviour body may be an RLM", color="#999999", constraint=false];
+
+  // ----------------------- CALM strata legend -----------------------------------
+  subgraph cluster_calm {
+    label="CALM strata  (Theme 5f) — where can you distribute across Hermes nodes?";
+    fontsize=12; style="dashed,rounded"; color="#9b2c2c";
+    mono [label="MONOTONE CORE\nappend + positive recursion\n(descendant, unresolved, event-chain,\nprovenance, projection)\n→ coordination-FREE · converges under any interleaving",
+          shape=note, style=filled, fillcolor="#c6f6d5"];
+    nono [label="NON-MONOTONE BOUNDARY\nnegation · aggregation (max depth) · retraction\n(frontier, the linter)\n→ needs a coordination point / its own stratum",
+          shape=note, style=filled, fillcolor="#fed7d7"];
+    mono -> nono [style=invis];
+  }
+}

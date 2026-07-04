@@ -1,0 +1,11 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix mnemo: <https://mnemosyne.dev/ns#> .
+@prefix msh: <https://mnemosyne.dev/shapes#> .
+# origin: rules.clj :missing-legal-basis (closed-world not-join)
+msh:S1 a sh:NodeShape ;
+  sh:targetClass mnemo:ProcessingActivity ;
+  sh:property msh:S1p .
+msh:S1p a sh:PropertyShape ;
+    sh:path mnemo:legalBasis ; sh:minCount 1 ;
+    sh:severity sh:Violation ;
+    sh:message "Processing activity lacks a legal basis: add a mnemo:legalBasis (RGPD art. 6)." .

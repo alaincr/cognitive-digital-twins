@@ -1,0 +1,13 @@
+[
+ {
+  "@id": "urn:mnemo:node:d1",
+  "@type": [
+   "https://mnemosyne.dev/ns#StaleDerived"
+  ],
+  "https://mnemosyne.dev/ns#stale": [
+   {
+    "@value": true
+   }
+  ]
+ }
+]

@@ -1,0 +1,36 @@
+flowchart LR
+  classDef src fill:#fefcbf,stroke:#975a16
+  classDef frozen fill:#fed7d7,stroke:#9b2c2c,stroke-width:2px
+  classDef proc fill:#ebf8ff,stroke:#2b6cb0
+  classDef gate fill:#e9d8fd,stroke:#805ad5,stroke-width:2px
+
+  CS["anchor calsets<br/>(double-pass consistent)"]:::src
+  AR["accepted.jsonl —<br/>anchor-family rows only"]:::src
+  HG["human gold<br/>(worked review queues)"]:::src
+
+  DS["dataset command<br/>provenance gate: human over anchor_double over anchor ·<br/>equal-tier conflicts DROPPED ·<br/>deterministic hash-bucket split"]:::proc
+  CS --> DS
+  AR --> DS
+  HG --> DS
+
+  TRN["train_{type}.jsonl<br/>SFT target imported from<br/>the deployed scorer"]:::proc
+  AUD["audit_{type}.jsonl<br/>FROZEN — never trained on,<br/>membership fixed by hash rule"]:::frozen
+  DS --> TRN
+  DS --> AUD
+
+  QL["QLoRA train on 3090<br/>peft + trl, assistant-only loss,<br/>r=16 nf4 4-bit"]:::proc
+  TRN --> QL
+  QL --> AD["adapter + weights hash<br/>→ new judge identity"]
+
+  EV["eval-audit: paired argmax,<br/>McNemar exact on discordant pairs"]:::proc
+  AUD --> EV
+  AD --> SRV["vllm serve --enable-lora"] --> EV
+  SRV --> SHW["shadow run on live candidates<br/>(separate outbox, never promoted)"]:::proc
+  SHW --> SC["shadow-compare: agreement ·<br/>abstention band · anchor join"]:::proc
+
+  PG{"promote-check gate"}:::gate
+  EV --> PG
+  SC --> PG
+  PG -->|"PROMOTE: recalibrate fresh,<br/>family preserved, old judge quarantined"| FLEET["judge fleet"]
+  PG -->|"EXTEND-SHADOW: gain real<br/>but p over 0.05 — gather more"| SHW
+  PG -->|"REJECT"| DS

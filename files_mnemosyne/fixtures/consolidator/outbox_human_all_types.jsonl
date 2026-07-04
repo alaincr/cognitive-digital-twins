@@ -1,0 +1,5 @@
+{"event":"human.response","task_id":"t-rev-1","task_type":"review","choice":"supports","response_hash":"rh1","answered_ts":"2026-07-04T02:13:00Z","route":{"jtype":"edge_type","fields":{"evidence":"e","claim":"c"},"context_hash":"abc"},"provenance":{"source":"human"}}
+{"event":"human.response","task_id":"t-ela-1","task_type":"elaborate","response_text":"Une reformulation élaborée du concept.","response_hash":"rh2","answered_ts":"2026-07-04T02:13:01Z","route":{"claim":"card-2","opposer":"card-9"},"provenance":{"source":"human"}}
+{"event":"human.response","task_id":"t-tri-1","task_type":"triage","choice":"promouvoir","response_hash":"rh3","answered_ts":"2026-07-04T02:13:02Z","route":{"uid":"card-1"},"provenance":{"source":"human"}}
+{"event":"human.response","task_id":"t-bri-1","task_type":"bridge","choice":"related","response_hash":"rh4","answered_ts":"2026-07-04T02:13:03Z","route":{"a":"card-1","b":"card-3"},"provenance":{"source":"human"}}
+{"event":"human.response.ambiguous","task_id":"t-amb-1","task_type":"elaborate","response_text":"???","response_hash":"rh5","answered_ts":"2026-07-04T02:13:04Z","route":{},"provenance":{"source":"human"}}

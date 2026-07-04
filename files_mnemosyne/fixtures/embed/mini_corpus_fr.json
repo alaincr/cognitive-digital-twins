@@ -1,0 +1,57 @@
+[
+  {"title": "Corpus FR — doublons plantés",
+   "children": [
+     {"uid": "p01a", "string": "Le sous-traitant conserve les données personnelles pendant 36 mois après la fin du contrat.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "p01b", "string": "Après la fin du contrat, le sous-traitant garde les données personnelles durant trente-six mois.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+
+     {"uid": "p02a", "string": "La clause d'audit est absente du DPA signé avec le prestataire Hexalog.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "p02b", "string": "Il manque une clause d'audit dans le DPA conclu avec le prestataire Hexalog.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+
+     {"uid": "p03a", "string": "Le responsable de traitement doit être notifié de toute violation sous 48 heures.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "p03b", "string": "Toute violation de données doit être signalée au responsable de traitement dans un délai de 48 heures.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+
+     {"uid": "p04a", "string": "Les transferts hors Union européenne exigent des clauses contractuelles types.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "p04b", "string": "Pour les transferts en dehors de l'UE, des clauses contractuelles types sont requises.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+
+     {"uid": "p05a", "string": "La minimisation des données limite la collecte au strict nécessaire pour la finalité.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "p05b", "string": "Le principe de minimisation restreint la collecte des données au strict nécessaire à la finalité.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+
+     {"uid": "p06a", "string": "Le registre des activités de traitement doit être tenu à jour par le responsable.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "p06b", "string": "Le responsable de traitement maintient à jour le registre des activités de traitement.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+
+     {"uid": "p07a", "string": "Le consentement doit être libre, spécifique, éclairé et univoque.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "p07b", "string": "Un consentement valable est libre, spécifique, éclairé et univoque.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+
+     {"uid": "p08a", "string": "L'analyse d'impact est obligatoire lorsque le traitement présente un risque élevé.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "p08b", "string": "Une AIPD est requise quand le traitement engendre un risque élevé pour les personnes.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+
+     {"uid": "p09a", "string": "Le délégué à la protection des données conseille et contrôle la conformité.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "p09b", "string": "Le DPO a pour mission de conseiller et de contrôler la conformité au règlement.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+
+     {"uid": "p10a", "string": "Les données doivent être exactes et tenues à jour tout au long du traitement.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "p10b", "string": "Il faut que les données restent exactes et à jour pendant toute la durée du traitement.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []}
+   ]},
+  {"title": "Corpus FR — blocs distincts",
+   "children": [
+     {"uid": "d01", "string": "La jurisprudence récente précise la portée du droit à l'effacement en matière de moteurs de recherche.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d02", "string": "Le contrat de bail commercial prévoit une clause d'indexation trimestrielle du loyer.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d03", "string": "L'assemblée générale a approuvé les comptes de l'exercice à la majorité des voix.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d04", "string": "La procédure de référé permet d'obtenir une décision rapide en cas d'urgence manifeste.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d05", "string": "Le calcul des amortissements suit la méthode linéaire sur la durée d'usage du bien.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d06", "string": "La marque doit présenter un caractère distinctif pour être valablement enregistrée.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d07", "string": "Le licenciement pour motif économique obéit à une procédure et à un ordre des départs.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d08", "string": "Le taux d'intérêt légal est fixé semestriellement par arrêté ministériel.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d09", "string": "La servitude de passage grève le fonds servant au profit du fonds dominant.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d10", "string": "L'architecture du graphe repose sur des blocs atomiques reliés par des références.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d11", "string": "La prescription extinctive de droit commun est de cinq ans en matière civile.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d12", "string": "Le régime matrimonial par défaut est la communauté réduite aux acquêts.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d13", "string": "L'embedding multilingue projette les phrases dans un espace vectoriel partagé.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d14", "string": "La caution solidaire peut être poursuivie sans bénéfice de discussion préalable.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d15", "string": "Le fonds de commerce comprend la clientèle, l'enseigne et le droit au bail.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d16", "string": "Le recours pour excès de pouvoir vise l'annulation d'un acte administratif illégal.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d17", "string": "La TVA collectée est reversée après déduction de la TVA déductible sur les achats.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d18", "string": "Le brevet confère un monopole d'exploitation limité à vingt ans à compter du dépôt.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d19", "string": "La médiation constitue un mode amiable de résolution des différends entre parties.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "d20", "string": "Le zettelkasten favorise l'émergence d'idées par la connexion de notes atomiques.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []}
+   ]}
+]

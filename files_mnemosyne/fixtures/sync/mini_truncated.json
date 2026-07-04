@@ -1,0 +1,28 @@
+[
+ {
+  "title": "R/Perception",
+  "edit-time": 1783086400000,
+  "children": [
+   {
+    "uid": "u1",
+    "string": "Analyse de la perception dans une architecture cognitive, voir ((u4)).",
+    "create-time": 1783000000000,
+    "edit-time": 1783086400000,
+    "children": []
+   }
+  ]
+ },
+ {
+  "title": "M/Eval/Seeded",
+  "edit-time": 1783086400000,
+  "children": [
+   {
+    "uid": "u6",
+    "string": "Seeded eval item that must never surface as a candidate.",
+    "create-time": 1783000000000,
+    "edit-time": 1783086400000,
+    "children": []
+   }
+  ]
+ }
+]

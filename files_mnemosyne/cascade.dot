@@ -1,0 +1,54 @@
+// Micro-judge cascade — render: dot -Tsvg cascade.dot -o cascade.svg
+digraph cascade {
+  rankdir=TB; labelloc="t"; fontsize=19; fontname="Helvetica-Bold";
+  label="Regime B½ — the micro-judge cascade over Mnemosyne";
+  node [fontname="Helvetica", fontsize=11];
+  edge [fontname="Helvetica", fontsize=9, color="#555555"];
+  graph [nodesep=0.4, ranksep=0.55, bgcolor="white"];
+
+  prefilter [label="PRE-FILTER (formal layer)\nactivation · surprisal · dirty-marks\n→ candidates, budgeted, debounced", shape=box, style="rounded,filled", fillcolor="#fefcbf"];
+
+  subgraph cluster_ladder {
+    label="the ladder — each rung emits inside its confident region, else escalates";
+    fontsize=12; style="rounded,filled"; fillcolor="#f7fafc"; color="#4a5568"; penwidth=1.5;
+    A  [label="A · heuristics\nDatalog rules, exact matches", shape=box, style="rounded,filled", fillcolor="#c6f6d5"];
+    B  [label="B · classifiers\nkNN, relational GNN edge scorer", shape=box, style="rounded,filled", fillcolor="#bee3f8"];
+    B5 [label="B½ · small-LLM judges (4–8B, local)\nclosed labels · constrained decoding\nlogprob confidence → conformal gate", shape=box, style="rounded,filled", fillcolor="#e9d8fd", penwidth=2, color="#805ad5"];
+    C  [label="C · anchor LLM\npanel arbiter · summary writer", shape=box, style="rounded,filled", fillcolor="#fed7d7"];
+    A -> B -> B5 -> C [label="abstain ⇒ escalate", color="#9b2c2c", fontcolor="#9b2c2c"];
+  }
+
+  log [label="APPEND-ONLY EVENT LOG\njudgments = typed facts + provenance envelope\n(judge id · weights hash · context hash · cal version)", shape=cylinder, style=filled, fillcolor="#9ae6b4"];
+
+  subgraph cluster_promo {
+    label="consolidation (non-monotone, single writer per subject)";
+    fontsize=12; style="dashed,rounded"; color="#9b2c2c";
+    panel [label="T2 panel gate\nk-of-n DISTINCT model families\nagree on same label · dissent ⇒ C", shape=box, style="rounded,filled", fillcolor="#fff5f7"];
+    promote [label="PROMOTE\nassert domain fact\n(:prov/from-judgment link)", shape=box, style="rounded,filled", fillcolor="#c6f6d5"];
+    panel -> promote;
+  }
+
+  graphfx [label="domain facts\ntyped edges · sameAs · stale-marks\n→ belief fixpoint · diffusion · summaries", shape=box, style="rounded,filled", fillcolor="white"];
+
+  subgraph cluster_audit {
+    label="audit loops";
+    fontsize=12; style="dashed,rounded"; color="#2b6cb0";
+    anchor [label="ANCHOR SAMPLING (ρ≈1–5%)\nlarge model re-judges accepted\n→ drift rate per (type × judge-version)", shape=box, style="rounded,filled", fillcolor="#ebf8ff"];
+    quarantine [label="QUARANTINE judge-version\n(drift > θ) — reversible event", shape=box, style="rounded,filled", fillcolor="#fed7d7"];
+    retract [label="COHORT RETRACTION\nquery cohort → retract licensed facts\n→ stale-mark derived cone → recompute", shape=box, style="rounded,filled", fillcolor="#feb2b2"];
+    anchor -> quarantine -> retract [style=dashed];
+  }
+
+  distill [label="DISTILLATION (gravity)\nadmissible examples only:\nlabel provenance ∋ anchor/human\nfrozen audit set never trained on", shape=note, style=filled, fillcolor="#faf5ff"];
+
+  prefilter -> A;
+  prefilter -> B5 [style=dotted, label="type-routed"];
+  A  -> log [label="emit fact"]; B -> log [label="emit fact"]; B5 -> log [label="emit fact"]; C -> log [label="verdict = judgment too"];
+  log -> panel [label="live candidates\nper subject-key"];
+  promote -> graphfx;
+  graphfx -> prefilter [label="new events → new candidates", constraint=false, color="#2f855a"];
+  log -> anchor [style=dashed, label="sample accepted"];
+  retract -> log [label="retraction events", color="#9b2c2c", constraint=false];
+  C -> distill [style=dotted, label="traces"]; distill -> B5 [style=dotted, label="judge v(n+1), shadow-deployed"];
+  B5 -> distill [style=dotted, label="stable behavior"]; distill -> B [style=dotted, label="classifier"];
+}

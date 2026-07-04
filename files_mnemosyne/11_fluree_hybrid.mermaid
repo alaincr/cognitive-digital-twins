@@ -1,0 +1,30 @@
+flowchart LR
+  classDef l2 fill:#ebf8ff,stroke:#2b6cb0,stroke-width:2px
+  classDef fl fill:#c6f6d5,stroke:#2f855a,stroke-width:2px
+  classDef ext fill:#fefcbf,stroke:#975a16
+
+  subgraph WORK["Working layer — in-process (the Athens split)"]
+    DS["DataScript projection<br/>rules.clj VERBATIM:<br/>descendant · frontier ·<br/>violation · derivation"]:::l2
+    L2["L2 runtime + consolidator<br/>run-to-fixpoint · promotion"]:::l2
+    DS --- L2
+  end
+
+  subgraph FLU["Fluree ledger — durable L3 (Rust core, BUSL→Apache)"]
+    COMMIT["signed, content-addressed commits<br/>one commit per Mnemosyne event ·<br/>event metadata in commit meta"]:::fl
+    SH["SHACL shapes at transaction time<br/>= the linter (closed-world by design)"]:::fl
+    RSN["forward-chaining reasoner<br/>Datalog and OWL-RL rules =<br/>monotone core materialized"]:::fl
+    BRS["branches: main · shadow-judge ·<br/>counterfactual what-if"]:::fl
+    IDX["integrated BM25 + HNSW<br/>= regime B in the same engine"]:::fl
+    COMMIT --> RSN
+    COMMIT --> BRS
+  end
+
+  KEYS["per-judge keypairs:<br/>judgments signed →<br/>cohort retraction with non-repudiation"]
+  EXTQ["external surface: SPARQL ·<br/>JSON-LD · ELI and PROV-O vocabularies →<br/>verifiable RGPD audit deliverables"]:::ext
+
+  L2 -->|"append! = bridge tx"| COMMIT
+  SH -.->|"gates"| COMMIT
+  COMMIT -->|"project = fold commits"| DS
+  KEYS -.-> COMMIT
+  FLU --> EXTQ
+  IDX -.->|"kNN candidates · hybrid retrieval"| L2

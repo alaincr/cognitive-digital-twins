@@ -1,0 +1,36 @@
+[
+ {
+  "@id": "urn:mnemo:node:p1",
+  "@type": [
+   "https://mnemosyne.dev/ns#PermanentNote",
+   "https://mnemosyne.dev/ns#Proposition"
+  ],
+  "https://mnemosyne.dev/ns#faithful": [
+   {
+    "@value": true
+   }
+  ],
+  "https://mnemosyne.dev/ns#continues": [
+   {
+    "@id": "urn:mnemo:node:p0"
+   }
+  ]
+ },
+ {
+  "@id": "urn:mnemo:node:p2",
+  "@type": [
+   "https://mnemosyne.dev/ns#PermanentNote",
+   "https://mnemosyne.dev/ns#Proposition"
+  ],
+  "https://mnemosyne.dev/ns#faithful": [
+   {
+    "@value": true
+   }
+  ],
+  "https://mnemosyne.dev/ns#trainHead": [
+   {
+    "@value": true
+   }
+  ]
+ }
+]

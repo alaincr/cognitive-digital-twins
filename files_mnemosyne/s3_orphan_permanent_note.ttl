@@ -1,0 +1,13 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix mnemo: <https://mnemosyne.dev/ns#> .
+@prefix msh: <https://mnemosyne.dev/shapes#> .
+# origin: zettel.clj orphan rule. Exporter materializes mnemo:PermanentNote
+# for stratum=permanent (SPEC-04 §2 class-in-export route).
+msh:S3 a sh:NodeShape ;
+  sh:targetClass mnemo:PermanentNote ;
+  sh:or (
+    [ sh:property [ sh:path mnemo:continues ; sh:minCount 1 ] ]
+    [ sh:property [ sh:path mnemo:trainHead ; sh:hasValue true ] ]
+  ) ;
+  sh:severity sh:Violation ;
+  sh:message "Permanent note is an orphan: give it a continues-edge or mark it a train head (Folgezettel no-orphan rule)." .

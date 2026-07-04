@@ -1,0 +1,22 @@
+flowchart TB
+  classDef ok fill:#c6f6d5,stroke:#2f855a
+  classDef warn fill:#fefcbf,stroke:#975a16
+  classDef bad fill:#fed7d7,stroke:#9b2c2c,stroke-width:2px
+
+  AC["accepted.jsonl<br/>(judgment_id · type · label · hash · family)"]:::ok
+  AS["anchor-sample rho 1-5%<br/>fields joined from contexts.jsonl"]:::ok
+  AO["anchor_outbox.jsonl<br/>agrees? + anchor_label"]:::ok
+  DR["drift rate per<br/>(type × judge-version)"]:::warn
+  TH{"disagreement over theta<br/>with n at least 30?"}:::warn
+  QU["QUARANTINE judge-version<br/>reversible event · candidates<br/>stop being promotable"]:::bad
+  REV["review task opens:<br/>recalibrate, retrain, or retract?"]:::warn
+  CR["COHORT RETRACTION<br/>query cohort → taint closure via<br/>derivation rules → retraction events"]:::bad
+  RC["stale-mark derived cone →<br/>consolidation recomputes"]:::ok
+  REC["recalibrate or distill v(n+1)"]:::ok
+
+  AC --> AS --> AO --> DR --> TH
+  TH -->|"yes"| QU --> REV
+  TH -->|"no, but widening trend"| REV
+  REV -->|"systematic bias"| CR --> RC
+  REV -->|"calibration drift"| REC
+  CR -.->|"nothing deleted — the mistake stays<br/>queryable as-of any past time"| AC

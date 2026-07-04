@@ -1,0 +1,14 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix mnemo: <https://mnemosyne.dev/ns#> .
+@prefix msh: <https://mnemosyne.dev/shapes#> .
+# origin: zettel belief-eligible invariant (literature props feed stances only
+# as evidence, never directly).  PORT-RISK: sh:sparql — verify Fluree support
+# before the Phase-3 port; fallback = consolidator-side check.
+msh:S6 a sh:NodeShape ;
+  sh:targetClass mnemo:Stance ;
+  sh:sparql [
+    sh:severity sh:Violation ;
+    sh:message "Stance is directly based on a literature-stratum proposition: literature enters belief only as typed evidence." ;
+    sh:select """SELECT $this ?value WHERE {
+      $this <https://mnemosyne.dev/ns#basis> ?value .
+      ?value <https://mnemosyne.dev/ns#kind> "literature" . }""" ] .

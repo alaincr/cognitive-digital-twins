@@ -1,0 +1,11 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix mnemo: <https://mnemosyne.dev/ns#> .
+@prefix msh: <https://mnemosyne.dev/shapes#> .
+# origin: zettel.clj register-overfull (register-cap = 2)
+msh:S4 a sh:NodeShape ;
+  sh:targetClass mnemo:RegisterKeyword ;
+  sh:property msh:S4p .
+msh:S4p a sh:PropertyShape ;
+  sh:path mnemo:entry ; sh:maxCount 2 ;
+  sh:severity sh:Violation ;
+  sh:message "Register keyword exceeds the doorway cap (2): consolidate entries by centrality x trail-weight." .

@@ -1,0 +1,71 @@
+[
+ {
+  "title": "R/Perception",
+  "edit-time": 1783259200000,
+  "children": [
+   {
+    "uid": "u1",
+    "string": "Analyse de la perception dans une architecture cognitive, voir ((u4)).",
+    "create-time": 1783000000000,
+    "edit-time": 1783086400000,
+    "children": [
+     {
+      "uid": "u2",
+      "string": "Le traitement est conforme à la réglementation générale RGPD.",
+      "create-time": 1783086400000,
+      "edit-time": 1783172800000,
+      "children": [
+       {
+        "uid": "u3",
+        "string": "Détail imbriqué de niveau trois sur la couche de perception.",
+        "create-time": 1783172800000,
+        "edit-time": 1783259200000,
+        "children": []
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "title": "R/Memory",
+  "edit-time": 1783172800000,
+  "children": [
+   {
+    "uid": "u4",
+    "string": "Bloc mémoire cité par une référence de bloc depuis la perception.",
+    "create-time": 1783000000000,
+    "edit-time": 1783086400000,
+    "children": []
+   },
+   {
+    "uid": "u1",
+    "string": "Second bloc sur la page mémoire, candidat au déplacement.",
+    "create-time": 1783000000000,
+    "edit-time": 1783172800000,
+    "children": []
+   },
+   {
+    "uid": "u8",
+    "string": "Bloc destiné à un déplacement accompagné d'une édition.",
+    "create-time": 1783000000000,
+    "edit-time": 1783172800000,
+    "children": []
+   }
+  ]
+ },
+ {
+  "title": "M/Eval/Seeded",
+  "edit-time": 1783086400000,
+  "children": [
+   {
+    "uid": "u6",
+    "string": "Seeded eval item that must never surface as a candidate.",
+    "create-time": 1783000000000,
+    "edit-time": 1783086400000,
+    "children": []
+   }
+  ]
+ }
+]

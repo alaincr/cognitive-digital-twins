@@ -1,0 +1,24 @@
+[
+ {
+  "@id": "urn:mnemo:node:pp1",
+  "@type": [
+   "https://mnemosyne.dev/ns#Proposition"
+  ],
+  "https://mnemosyne.dev/ns#kind": [
+   {
+    "@value": "literature"
+   }
+  ]
+ },
+ {
+  "@id": "urn:mnemo:node:st1",
+  "@type": [
+   "https://mnemosyne.dev/ns#Stance"
+  ],
+  "https://mnemosyne.dev/ns#basis": [
+   {
+    "@id": "urn:mnemo:node:pp1"
+   }
+  ]
+ }
+]

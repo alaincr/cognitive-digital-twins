@@ -1,0 +1,63 @@
+# judges_config.example.yaml — COMMITTED EXAMPLE for the Mnemosyne micro-judge
+# harness (brick B6, gap G6).
+#
+# Copy this to `judges_config.yaml` (git-ignored) and fill in real endpoints
+# + set the API keys in your environment. Keys are interpolated from the
+# environment at config load (${JUDGE_API_KEY} etc.) — never commit them.
+#
+# Reduced-loop fleet: ONE judge (qwen-a) + ONE anchor. The extra T2 panel
+# families (gemma-a / phi-a) are out of scope for B6-lite (SPEC-00 §6) and are
+# added back only when B6-full / T2 panels come online.
+#
+# judge_id convention:
+#   local  : <model>@<weights-hash-8>#p<prompt_version>    (deterministic replay)
+#   api    : <model>@api-<provider>-<calib-date>#p<prompt_version>   (PRD §3)
+# Bump prompt_version whenever judge_prompts.py templates change;
+# recalibrate on every judge_id change (microjudge_contract.md §4).
+#
+# mode (B6):
+#   api-logprobs  — provider serves raw vLLM /completions with echo+logprobs
+#                   (I3 respected in full). infra_check MUST see the exact
+#                   echo+logprobs call succeed (§1 of ANNEX_B6). BLOCKING.
+#   api-selfreport— provider gives no prompt logprobs; contractual fallback,
+#                   verdicts flagged self_reported=true, α hardened. Requires
+#                   self_reported_ok: true set EXPLICITLY.
+#   vllm-local    — local vLLM server, pinned weights (real hash in judge_id).
+
+judges:
+  qwen-a:
+    judge_id: "qwen3-8b@api-together-2026-07-08#p1"   # model@weights#prompt
+    model: "Qwen/Qwen3-8B"                # exact served name (compared by infra_check)
+    family: "qwen"
+    base_url: "https://api.provider.example/v1"
+    api_key: "${JUDGE_API_KEY}"           # interpolated from env at load
+    prompt_version: 1
+    # --- B6 keys (retro-compatible; harness ignores unknown keys) ---
+    mode: "api-logprobs"                   # api-logprobs | api-selfreport | vllm-local
+    self_reported_ok: false                # must be true to allow the self-report fallback
+    price: {input_per_mtok: 0.20, output_per_mtok: 0.60}   # spend guard tariff (USD)
+
+  anchor:
+    judge_id: "anchor-large@api-2026-07-08#p1"
+    model: "your-large-anchor-model"       # exact served name
+    family: "anchor"                       # family 'anchor' => labels are training-admissible
+    base_url: "https://api.anchor.example/v1"
+    api_key: "${ANCHOR_API_KEY}"
+    prompt_version: 1
+    # --- B6 keys --- (anchor needs no logprobs: it emits constrained-JSON labels)
+    mode: "api-selfreport"
+    self_reported_ok: true                 # anchor produces gold labels, not calibrated confidences
+    price: {input_per_mtok: 3.00, output_per_mtok: 15.00}
+
+# Operational defaults (read by runner scripts / infra_check, not the scoring math).
+policy:
+  alpha: {t0: 0.10, t1: 0.10, t2: 0.05}    # conformal miscoverage targets
+  panel_k_t2: 2                            # k-of-n distinct families
+  anchor_rho: 0.05                         # drift-sampling rate
+  drift_theta: 0.15                        # quarantine threshold
+  outbox: "outbox.jsonl"                   # -> Clojure ingestor -> emit-judgment!
+
+# Spend guard (B6 FR-3). Ledger is ops/spend.jsonl (INTERFACES.md row).
+spend:
+  max_usd_per_run: 10.0
+  ledger: "ops/spend.jsonl"

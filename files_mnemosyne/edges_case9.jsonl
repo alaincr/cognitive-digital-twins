@@ -1,0 +1,4 @@
+{"edge_type":"supports","from":"evd-1","to":"clm-1","edge_id":"e-1"}
+{"edge_type":"opposes","from":"evd-9","to":"evd-1","edge_id":"e-2"}
+{"edge_type":"opposes","from":"evd-4","to":"evd-9","edge_id":"e-3"}
+{"edge_type":"refines","from":"evd-7","to":"clm-1","edge_id":"e-12"}

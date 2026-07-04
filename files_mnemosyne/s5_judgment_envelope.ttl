@@ -1,0 +1,15 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix mnemo: <https://mnemosyne.dev/ns#> .
+@prefix msh: <https://mnemosyne.dev/shapes#> .
+# origin: invariant I4 (provenance envelope integrity)
+msh:S5 a sh:NodeShape ;
+  sh:targetClass mnemo:Judgment ;
+  sh:property msh:S5p1, msh:S5p2, msh:S5p3, msh:S5p4 .
+msh:S5p1 a sh:PropertyShape ; sh:path mnemo:judge ; sh:minCount 1 ;
+  sh:severity sh:Violation ; sh:message "Judgment missing judge identity (I4)." .
+msh:S5p2 a sh:PropertyShape ; sh:path mnemo:contextHash ; sh:minCount 1 ;
+  sh:severity sh:Violation ; sh:message "Judgment missing context hash (I4)." .
+msh:S5p3 a sh:PropertyShape ; sh:path mnemo:calVersion ; sh:minCount 1 ;
+  sh:severity sh:Violation ; sh:message "Judgment missing calibration version (I4)." .
+msh:S5p4 a sh:PropertyShape ; sh:path mnemo:label ; sh:minCount 1 ;
+  sh:severity sh:Violation ; sh:message "Judgment missing label (I4)." .

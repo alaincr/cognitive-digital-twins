@@ -1,0 +1,23 @@
+[
+ {
+  "@id": "urn:mnemo:node:j1",
+  "@type": [
+   "https://mnemosyne.dev/ns#Judgment"
+  ],
+  "https://mnemosyne.dev/ns#judge": [
+   {
+    "@value": "qwen@a#p1"
+   }
+  ],
+  "https://mnemosyne.dev/ns#contextHash": [
+   {
+    "@value": "h"
+   }
+  ],
+  "https://mnemosyne.dev/ns#label": [
+   {
+    "@value": "supports"
+   }
+  ]
+ }
+]

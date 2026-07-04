@@ -1,0 +1,34 @@
+[
+ {
+  "@id": "urn:mnemo:node:clm1",
+  "@type": [
+   "https://mnemosyne.dev/ns#Claim"
+  ],
+  "https://mnemosyne.dev/ns#text": [
+   {
+    "@value": "c"
+   }
+  ]
+ },
+ {
+  "@id": "urn:mnemo:node:e1",
+  "@type": [
+   "https://mnemosyne.dev/ns#DiscourseEdge"
+  ],
+  "https://mnemosyne.dev/ns#from": [
+   {
+    "@id": "urn:mnemo:node:evd1"
+   }
+  ],
+  "https://mnemosyne.dev/ns#to": [
+   {
+    "@id": "urn:mnemo:node:clm1"
+   }
+  ],
+  "https://mnemosyne.dev/ns#edgeType": [
+   {
+    "@value": "supports"
+   }
+  ]
+ }
+]

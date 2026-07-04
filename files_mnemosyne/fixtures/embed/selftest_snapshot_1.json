@@ -1,0 +1,23 @@
+[
+  {"title": "Conservation des données",
+   "children": [
+     {"uid": "parent_1", "string": "La limitation de la conservation impose des durées proportionnées à la finalité du traitement.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": [
+        {"uid": "child_1", "string": "Donc la durée de conservation des logs applicatifs doit elle aussi être plafonnée à la finalité poursuivie.", "create-time": 1748100000000, "edit-time": 1748100000000, "children": []},
+        {"uid": "short_1", "string": "Trop court ici.", "create-time": 1748100000000, "edit-time": 1748100000000, "children": []}
+     ]}
+   ]},
+  {"title": "Sous-traitance Hexalog",
+   "children": [
+     {"uid": "dup_a", "string": "La clause d'audit est absente du DPA signé avec le sous-traitant Hexalog.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []},
+     {"uid": "shrink_1", "string": "Le registre des traitements a été mis à jour ce trimestre pour Hexalog et validé.", "create-time": 1748000000000, "edit-time": 1748000000000, "children": []}
+   ]},
+  {"title": "Notes de lecture",
+   "children": [
+     {"uid": "dup_b", "string": "La clause d'audit est absente du DPA signé avec le sous-traitant Hexalog.", "create-time": 1748200000000, "edit-time": 1748200000000, "children": []},
+     {"uid": "misc_1", "string": "Réflexion libre sur l'architecture générale du graphe de connaissances personnel.", "create-time": 1748050000000, "edit-time": 1748050000000, "children": []}
+   ]},
+  {"title": "M/Judgments",
+   "children": [
+     {"uid": "m_sys_1", "string": "Jugement écrit par le système: edge_type supports entre deux blocs référencés.", "create-time": 1748300000000, "edit-time": 1748300000000, "children": []}
+   ]}
+]

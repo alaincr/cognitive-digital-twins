@@ -1,0 +1,14 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix mnemo: <https://mnemosyne.dev/ns#> .
+@prefix msh: <https://mnemosyne.dev/shapes#> .
+# origin: linter :unsupported. Warning, not Violation: unsupported != wrong
+# (belief layer says accepted-undisputed).  PORT-RISK: qualifiedValueShape.
+msh:S2 a sh:NodeShape ;
+  sh:targetClass mnemo:Claim ;
+  sh:property msh:S2p .
+msh:S2p a sh:PropertyShape ;
+  sh:path [ sh:inversePath mnemo:to ] ;
+  sh:qualifiedValueShape [ sh:property [ sh:path mnemo:edgeType ; sh:hasValue "supports" ] ] ;
+  sh:qualifiedMinCount 1 ;
+  sh:severity sh:Warning ;
+  sh:message "Claim has no supporting evidence edge: link at least one supports-edge or expect accepted-undisputed status." .

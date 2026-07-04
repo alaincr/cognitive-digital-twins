@@ -1,0 +1,22 @@
+flowchart LR
+  classDef mono fill:#c6f6d5,stroke:#2f855a,stroke-width:2px
+  classDef nonm fill:#fed7d7,stroke:#9b2c2c,stroke-width:2px
+
+  subgraph M["MONOTONE CORE — coordination-free, runs on ANY Hermes node"]
+    M1["append events · emit judgments"]:::mono
+    M2["positive recursion:<br/>descendant · event-chain · derivation"]:::mono
+    M3["trail counters · co-occurrence tallies"]:::mono
+    M4["pooled embeddings (provisional)"]:::mono
+    M5["Fluree reasoner materialization<br/>(positive rules only — enforced)"]:::mono
+  end
+
+  subgraph N["NON-MONOTONE BOUNDARY — single writer: the consolidator"]
+    N1["negation: frontier · linter · SHACL"]:::nonm
+    N2["promotion · panel arbitration ·<br/>sameAs acceptance"]:::nonm
+    N3["belief stance — grounded extension"]:::nonm
+    N4["re-summarization · invalidation"]:::nonm
+    N5["retraction · cohort retraction"]:::nonm
+  end
+
+  M ==>|"stratification: monotone facts flow in,<br/>decisions flow back as new appends"| N
+  N ==>|"every decision re-enters the log<br/>as an append (monotone again)"| M

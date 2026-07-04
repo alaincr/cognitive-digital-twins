@@ -1,0 +1,13 @@
+[
+ {
+  "@id": "urn:mnemo:node:pa1",
+  "@type": [
+   "https://mnemosyne.dev/ns#ProcessingActivity"
+  ],
+  "https://mnemosyne.dev/ns#text": [
+   {
+    "@value": "no basis"
+   }
+  ]
+ }
+]

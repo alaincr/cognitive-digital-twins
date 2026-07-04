@@ -1,0 +1,373 @@
+[
+ {
+  "title": "M/Tasks",
+  "children": [
+   {
+    "uid": "task-1",
+    "string": "[[M/Task]] Comment ((clm1)) se tient-il face à ((evd1)) ?",
+    "create-time": 1783000000000,
+    "edit-time": 1783000000000,
+    "children": [
+     {
+      "uid": "task-1-tt",
+      "string": "task-type:: elaborate",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-1-id",
+      "string": "task-id:: sha256:f122ae800d3b637c7d058c48665e6c5b3723505a85003e05c07d9a817c4d6ccd",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-1-st",
+      "string": "status:: open",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-1-due",
+      "string": "due-hint:: [[July 6th, 2026]]",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-1-rf",
+      "string": "refs:: ((clm1)) ((evd1))",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-1-ans",
+      "string": "Réponse : Le claim tient car la clause a été ajoutée en annexe.",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     }
+    ]
+   },
+   {
+    "uid": "task-2",
+    "string": "[[M/Task]] Que faire de ((note2)) ?",
+    "create-time": 1783000000000,
+    "edit-time": 1783000000000,
+    "children": [
+     {
+      "uid": "task-2-tt",
+      "string": "task-type:: triage",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-2-id",
+      "string": "task-id:: sha256:0a6224fc96a41bb181013a9dd4d1def58a5be6b6cff7530e378d666e4b20f94f",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-2-st",
+      "string": "status:: open",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-2-due",
+      "string": "due-hint:: [[July 6th, 2026]]",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-2-rf",
+      "string": "refs:: ((note2))",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-2-c",
+      "string": "Choix (un tag) : #promouvoir #garder #archiver",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": [
+       {
+        "uid": "task-2-ans",
+        "string": "#promouvoir",
+        "create-time": 1783000000000,
+        "edit-time": 1783000000000,
+        "children": []
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "uid": "task-3",
+    "string": "[[M/Task]] ((a3)) et ((b3)) sont-elles reliées ?",
+    "create-time": 1783000000000,
+    "edit-time": 1783000000000,
+    "children": [
+     {
+      "uid": "task-3-tt",
+      "string": "task-type:: bridge",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-3-id",
+      "string": "task-id:: sha256:aea6d6ca19f51419f320ad08838e28750202c0476b9fc7594fafd3af17164990",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-3-st",
+      "string": "status:: open",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-3-due",
+      "string": "due-hint:: [[July 6th, 2026]]",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-3-rf",
+      "string": "refs:: ((a3)) ((b3))",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-3-c",
+      "string": "Choix (un tag) : #related #unrelated",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": [
+       {
+        "uid": "task-3-ans",
+        "string": "je pense #related mais aussi #unrelated en fait",
+        "create-time": 1783000000000,
+        "edit-time": 1783000000000,
+        "children": []
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "uid": "task-4",
+    "string": "[[M/Task]] Comment ((clm4)) se tient-il face à ((evd4)) ?",
+    "create-time": 1783000000000,
+    "edit-time": 1783000000000,
+    "children": [
+     {
+      "uid": "task-4-tt",
+      "string": "task-type:: elaborate",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-4-id",
+      "string": "task-id:: sha256:9245a36266f7dbf6cd47186c54cb135327548e45d96c3b87269dfa2bbe27d763",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-4-st",
+      "string": "status:: open",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-4-due",
+      "string": "due-hint:: [[July 6th, 2026]]",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-4-rf",
+      "string": "refs:: ((clm4)) ((evd4))",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-4-ans",
+      "string": "Réponse :",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     }
+    ]
+   },
+   {
+    "uid": "task-5",
+    "string": "[[M/Task]] Comment ((clm5)) se tient-il face à ((evd5)) ?",
+    "create-time": 1783000000000,
+    "edit-time": 1783000000000,
+    "children": [
+     {
+      "uid": "task-5-tt",
+      "string": "task-type:: elaborate",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-5-id",
+      "string": "task-id:: sha256:b566aaab04b5724fb5db0b78413a6c8b5a5e52e8462493dbbcd16c358cc0c184",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-5-st",
+      "string": "status:: open",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-5-due",
+      "string": "due-hint:: [[July 6th, 2026]]",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-5-rf",
+      "string": "refs:: ((clm5)) ((evd5))",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-5-ans",
+      "string": "Réponse : ?",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     }
+    ]
+   },
+   {
+    "uid": "task-6",
+    "string": "[[M/Task]] Comment ((clm6)) se tient-il face à ((evd6)) ?",
+    "create-time": 1783000000000,
+    "edit-time": 1783000000000,
+    "children": [
+     {
+      "uid": "task-6-tt",
+      "string": "task-type:: elaborate",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-6-id",
+      "string": "task-id:: sha256:2cf2514f5d2ccc5b627a7950a7e38fa9a5d39fb1e03b7aa79539acd0d801bd06",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-6-st",
+      "string": "status:: open",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-6-due",
+      "string": "due-hint:: [[July 6th, 2026]]",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-6-rf",
+      "string": "refs:: ((clm6)) ((evd6))",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-6-ans",
+      "string": "Réponse : Version amendée : finalement le claim est réfuté.",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     }
+    ]
+   },
+   {
+    "uid": "task-7",
+    "string": "[[M/Task]] Comment ((clm7)) se tient-il face à ((evd7)) ?",
+    "create-time": 1783000000000,
+    "edit-time": 1783000000000,
+    "children": [
+     {
+      "uid": "task-7-tt",
+      "string": "task-type:: elaborate",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-7-id",
+      "string": "task-id:: sha256:e375e544befdea370b51e5e02dc4acc35287746c7feefc57bdd071a933cb02d9",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-7-st",
+      "string": "status:: open",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-7-due",
+      "string": "due-hint:: [[July 6th, 2026]]",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-7-rf",
+      "string": "refs:: ((clm7)) ((evd7))",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     },
+     {
+      "uid": "task-7-free",
+      "string": "Oui il tient, la preuve est hors-sujet.",
+      "create-time": 1783000000000,
+      "edit-time": 1783000000000,
+      "children": []
+     }
+    ]
+   }
+  ]
+ }
+]

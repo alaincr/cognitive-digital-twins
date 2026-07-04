@@ -1,0 +1,4 @@
+{"edge_id":"bridge/card-1+card-3","edge_type":"bridge","from":"card-1","to":"card-3"}
+{"edge_id":"clm-1->evd-1#supports","edge_type":"supports","from":"clm-1","to":"evd-1"}
+{"edge_id":"evd-4->clm-1#refines","edge_type":"refines","from":"evd-4","to":"clm-1"}
+{"edge_id":"evd-9->evd-1#opposes","edge_type":"opposes","from":"evd-9","to":"evd-1"}

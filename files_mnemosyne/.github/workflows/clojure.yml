@@ -1,0 +1,63 @@
+name: clojure
+
+# B4 executable gate. The Clojure substrate is reviewed-not-executed in the
+# authoring sandbox (no JVM/Clojars there); THIS job is where it actually runs:
+# it folds the committed golden fixtures, replays them, and asserts the crash /
+# idempotence / state-hash invariants (PRD B4 §7). It also runs the Python
+# self-tests for the B4 stage tools so the two halves of the contract are gated
+# together.
+
+on:
+  push:
+    paths:
+      - "files_mnemosyne/**"
+      - ".github/workflows/clojure.yml"
+  pull_request:
+    paths:
+      - "files_mnemosyne/**"
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: files_mnemosyne
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Clojure
+        uses: DeLaGuardo/setup-clojure@12.5
+        with:
+          cli: latest
+
+      - name: Cache deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2
+            ~/.gitlibs
+            ~/.deps.clj
+          key: cljdeps-${{ hashFiles('files_mnemosyne/deps.edn') }}
+
+      - name: Python self-tests (B4 stage tools)
+        run: |
+          python3 -m py_compile cycle_tools.py
+          python3 cycle_tools.py self-test
+
+      - name: Shell syntax
+        run: bash -n cycle.sh
+
+      - name: Clojure golden-replay + crash + state-hash tests
+        run: clojure -M:test

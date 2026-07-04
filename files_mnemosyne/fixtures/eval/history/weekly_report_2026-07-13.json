@@ -1,0 +1,23 @@
+{
+  "week": "2026-07-13",
+  "e2": {
+    "detected_frac": 0.3
+  },
+  "e3": {
+    "overall": {
+      "union": 0.3,
+      "marginal": 0.15
+    }
+  },
+  "e4": {
+    "churn_share": 0.1
+  },
+  "e5": {
+    "overall_response_rate": 0.55
+  },
+  "e1": {
+    "anchor_agreement": {
+      "agreement": 0.9
+    }
+  }
+}

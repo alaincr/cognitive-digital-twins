@@ -1,0 +1,21 @@
+[
+ {
+  "@id": "urn:mnemo:node:kw1",
+  "@type": [
+   "https://mnemosyne.dev/ns#RegisterKeyword"
+  ],
+  "https://mnemosyne.dev/ns#keyword": [
+   {
+    "@value": "rgpd"
+   }
+  ],
+  "https://mnemosyne.dev/ns#entry": [
+   {
+    "@id": "urn:mnemo:node:n1"
+   },
+   {
+    "@id": "urn:mnemo:node:n2"
+   }
+  ]
+ }
+]

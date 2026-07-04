@@ -1,0 +1,1 @@
+{"event":"judgment.emitted","jtype":"teleport","subjects":["x-1","x-2"],"judge_id":"anchor-a@cal1#p1","cal_version":"cal-1","context_hash":"h-u-1","ts":"2026-07-04T02:11:00Z","caused_by":"sha256:u1","label":"maybe","confidence":0.5,"self_reported":false}
