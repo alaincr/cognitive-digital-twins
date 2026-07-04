@@ -87,6 +87,11 @@
   (let [jid (str "jdg-" (java.util.UUID/randomUUID))]
     (m/append! {:type :judgment.emitted :actor judge-id :caused-by caused-by
                 :tx-data
+                ;; Subject nodes are UPSERTED first (map form on the unique
+                ;; :node/id): a lookup ref [:node/id x] as a ref VALUE does
+                ;; NOT create the entity — entid-strict throws on the first
+                ;; judgment about a node the substrate has never seen.
+                (into (mapv (fn [nid] {:node/id nid}) subjects)
                 [(cond-> {:judgment/id jid
                           :judgment/type jtype
                           :judgment/subjects (mapv (fn [nid] [:node/id nid]) subjects)
@@ -102,7 +107,7 @@
                           :judgment/context-hash ctx-hash
                           :judgment/status :candidate}
                    basis          (assoc :judgment/basis (subs basis 0 (min 240 (count basis))))
-                   self-reported? (assoc :judgment/self-reported? true))]})
+                   self-reported? (assoc :judgment/self-reported? true))])})
     jid))
 
 (defn emit-abstention!

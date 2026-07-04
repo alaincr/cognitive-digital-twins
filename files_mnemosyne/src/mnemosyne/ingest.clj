@@ -680,12 +680,15 @@
   (let [written (atom 0)]
     (binding [m/*wal-fn*
               (fn [record]
-                (dur/append-record! journal record (swap! seq inc))
-                (let [n (swap! written inc)]
+                (let [row (dur/append-record! journal record (swap! seq inc))
+                      n   (swap! written inc)]
                   (when (and crash-after (= n crash-after))
                     (binding [*out* *err*]
                       (println "CRASH-TEST: exiting after WAL #" n "(before in-memory swap)"))
-                    (System/exit 42))))]
+                    (System/exit 42))
+                  ;; the durable content-addressed id becomes the event's
+                  ;; public identity (core/append! returns it)
+                  (get row "event_id")))]
       (f))))
 
 ;; ===========================================================================
@@ -757,7 +760,10 @@
                             :stance-diff (cp "stance_diff.jsonl")
                             :counters {}})
             ;; --- end-of-cycle state hash marker ---
-            (dur/journal-state-hash! jpath (swap! seq inc) db)
+            ;; RE-PROJECT before hashing: the exports above appended events
+            ;; (:judgments.exported, orders) — hashing the pre-export `db`
+            ;; would journal a marker the refold can never reproduce.
+            (dur/journal-state-hash! jpath (swap! seq inc) (m/project @log))
             (println (format "cycle %s: promoted=%d escalated=%d exported=%d edges=%d causes=%d log=%d"
                              cycle promoted (count escalated) exported nedges ncauses (count @log)))
             {:promoted promoted :escalated (count escalated) :exported exported}))))))

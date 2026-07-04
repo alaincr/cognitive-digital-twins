@@ -107,15 +107,17 @@
                    (or (:node/id e) (:judgment/id e) (:judge/id e)
                        (:event/id e) (:register/keyword e)
                        (str "eid:" eid))))
-        rows (->> (d/datoms db :eav)
+        ;; ONLY values of ref-typed attributes are entity ids — probing every
+        ;; integer with d/entity throws on plain integer values (e.g. the
+        ;; negative :judgment/subject-key hashes: entid rejects them).
+        schema (:schema db)
+        ref?   (fn [a] (= :db.type/ref (get-in schema [a :db/valueType])))
+        rows (->> (d/datoms db :eavt)
                   (map (fn [[e a v _tx]]
                          ;; resolve ref values (numeric eids) to their stable id
                          ;; so the hash is invariant to entity-id assignment order
                          [(name a) (stable e)
-                          (if (and (integer? v) (d/entity db v)
-                                   (let [t (d/entity db v)]
-                                     (or (:node/id t) (:judgment/id t)
-                                         (:judge/id t))))
+                          (if (and (ref? a) (integer? v))
                             (stable v)
                             (str v))]))
                   sort
@@ -134,7 +136,7 @@
   (let [f (io/file path)]
     (if-not (.exists f)
       []
-      (let [lines (with-open [r (io/reader f "UTF-8")]
+      (let [lines (with-open [r (io/reader f :encoding "UTF-8")]
                     (doall (line-seq r)))
             n     (count lines)]
         (vec

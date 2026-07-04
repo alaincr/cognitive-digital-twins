@@ -121,9 +121,12 @@
      ;; WRITE-AHEAD (B4): the durable layer journals the FULLY-STAMPED record to
      ;; disk here, BEFORE the in-memory swap. A crash between the two loses
      ;; nothing — boot re-folds the journal. Default *wal-fn* is a no-op.
-     (*wal-fn* record)
-     (swap! log conj record)                ;; memory second
-     eid)))
+     ;; When the WAL returns the durable content-addressed id ("sha256:…"),
+     ;; THAT is the event's public identity (idempotency keys / caused_by in
+     ;; causes and orders — PRD B4 FR-2); evt-NNNN stays internal.
+     (let [durable-id (*wal-fn* record)]
+       (swap! log conj record)              ;; memory second
+       (if (string? durable-id) durable-id eid)))))
 
 (defn project
   "L2 projection / L3 as-of. Fold an event sequence into a DataScript db VALUE.
