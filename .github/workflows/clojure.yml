@@ -51,13 +51,22 @@ jobs:
             ~/.deps.clj
           key: cljdeps-${{ hashFiles('files_mnemosyne/deps.edn') }}
 
-      - name: Python self-tests (B4 stage tools)
+      - name: Python deps (allowed third-party, SPEC-00 §3.1)
+        run: pip install pyyaml openai numpy
+
+      - name: Python self-tests (all bricks + SPEC-00 §5 regression)
         run: |
-          python3 -m py_compile cycle_tools.py
-          python3 cycle_tools.py self-test
+          python3 -m py_compile *.py
+          for t in judge_harness zettel_prompts distill_judge prefilter \
+                   roam_sync roam_harvest roam_writeback task_gen \
+                   task_harvest human_prompts calset_merge embed_index \
+                   infra_check spend eval_harness cycle_tools; do
+            echo "== $t =="; python3 $t.py self-test || exit 1
+          done
+          python3 roam_harvest.py demo --out-dir /tmp/reg >/dev/null
 
       - name: Shell syntax
-        run: bash -n cycle.sh
+        run: bash -n cycle.sh first_judge.sh
 
       - name: Clojure golden-replay + crash + state-hash tests
         run: clojure -M:test
