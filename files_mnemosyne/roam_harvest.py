@@ -235,7 +235,35 @@ def h_same_entity(g: Graph, rng, cap: int) -> List[dict]:
         cites = [g.blocks[u]["string"] for u in list(g.inbound.get(t, []))[:2]]
         return trim(" | ".join(cites) or f"(page '{t}', no inbound refs)")
 
-    for t1, t2 in itertools.combinations(titles, 2):
+    # Blocking, not brute force: combinations(N, 2) is 164M pairs on a real
+    # 18k-page graph (observed: >180s timeout). Candidate pairs must share a
+    # >=4-char normalized token (covers sim>=0.55 and containment — high
+    # lexical overlap implies a shared token) or hit the acronym index
+    # (acronym pairs share no token). Buckets over 200 titles are discourse
+    # stopwords ('journal', …), skipped: they'd recreate the quadratic blowup.
+    norms = {t: norm(t) for t in titles}
+    tok_index: Dict[str, List[str]] = {}
+    for t in titles:
+        for tok in set(w for w in norms[t].split() if len(w) >= 4):
+            tok_index.setdefault(tok, []).append(t)
+    acro_index: Dict[str, List[str]] = {}
+    for t in titles:
+        a = acronym(t)
+        if a:
+            acro_index.setdefault(a, []).append(t)
+    cand_pairs = set()
+    for tok, ts in tok_index.items():
+        if len(ts) > 200:
+            continue
+        for pair in itertools.combinations(sorted(ts), 2):
+            cand_pairs.add(pair)
+    for t in titles:
+        key = norms[t].replace(" ", "")
+        for other in acro_index.get(key, []):
+            if other != t:
+                cand_pairs.add(tuple(sorted((t, other))))
+
+    for t1, t2 in sorted(cand_pairs):
         s = sim(t1, t2)
         n1, n2 = norm(t1), norm(t2)
         acro = (acronym(t2) == n1.replace(" ", "") or
@@ -466,11 +494,22 @@ def h_permanent_worthy(g: Graph, rng, cap: int) -> List[dict]:
     which are literature, hence keep-candidate-leaning under the policy."""
     pool = [b for b in g.blocks.values() if 30 <= len(b["string"]) <= 450
             and not b["string"].startswith(">") and not is_eval_page(b["page"])]
+    # Bounded work: the old body rebuilt a len(pool) list PER item (O(n^2)
+    # list construction — >180s on a real 195k-block pool). Process a
+    # shuffled slice of at most 3*cap items (diversity preserved by the
+    # shuffle; deterministic via the seeded rng after a stable sort) and
+    # draw neighbor samples by index without copying the pool.
+    pool.sort(key=lambda b: b["uid"])
+    rng.shuffle(pool)
     rows = []
-    for b in pool:
-        others = [o for o in pool if o["uid"] != b["uid"]]
+    for b in pool[:max(cap * 3, 60)]:
         best, bs = None, 0.0
-        for o in rng.sample(others, min(len(others), 40)):
+        tried = 0
+        while tried < min(len(pool) - 1, 40):
+            o = pool[rng.randrange(len(pool))]
+            if o["uid"] == b["uid"]:
+                continue
+            tried += 1
             sc = sim(b["string"], o["string"])
             if sc > bs:
                 best, bs = o, sc
