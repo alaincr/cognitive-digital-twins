@@ -153,23 +153,55 @@ def build_anchor_user(jtype: str, fields: Dict[str, str],
 # Labeling
 # ---------------------------------------------------------------------------
 
-def anchor_call(judge, jtype: str, user: str):
+def _salvage_json(text: str) -> dict:
+    """Parse model output as JSON, tolerating markdown fences and prose
+    around the object (providers without constrained decoding do both)."""
+    t = (text or "").strip()
+    if t.startswith("```"):
+        t = t.split("```", 2)[1]
+        t = t.split("\n", 1)[1] if "\n" in t else t
+        t = t.rsplit("```", 1)[0]
+    start, end = t.find("{"), t.rfind("}")
+    if start >= 0 and end > start:
+        t = t[start:end + 1]
+    return json.loads(t)
+
+
+def anchor_call(judge, jtype: str, user: str, cli=None):
     """Returns (parsed_verdict, tokens_in, tokens_out). Token counts feed the
-    B6 spend meter; 0/0 if the provider omits usage."""
-    from openai import OpenAI
-    cli = OpenAI(base_url=judge.base_url, api_key=judge.api_key)
+    B6 spend meter; 0/0 if the provider omits usage.
+
+    Constrained decoding: `guided_json` for vLLM endpoints, plus OpenAI-style
+    `response_format json_schema` for API providers (OpenRouter/DeepSeek).
+    Falls back to unconstrained + salvage if the routed provider rejects
+    response_format. `cli` is injectable (infra_check reuses THIS call)."""
+    if cli is None:
+        from openai import OpenAI
+        cli = OpenAI(base_url=judge.base_url, api_key=judge.api_key)
     schema = dict(OUT_SCHEMA)
     schema["properties"] = dict(OUT_SCHEMA["properties"])
     schema["properties"]["label"] = {"enum": list(JP.LABEL_DEFS[jtype])}
-    r = cli.chat.completions.create(
-        model=judge.model, temperature=0.0, max_tokens=300,
-        messages=[{"role": "system", "content": ANCHOR_SYSTEM},
-                  {"role": "user", "content": user}],
-        extra_body={"guided_json": schema})
+    xb = dict(getattr(judge, "extra_body", {}) or {})
+    xb.setdefault("guided_json", schema)
+    kwargs = dict(model=judge.model, temperature=0.0, max_tokens=800,
+                  messages=[{"role": "system", "content": ANCHOR_SYSTEM},
+                            {"role": "user", "content": user}],
+                  extra_body=xb)
+    try:
+        r = cli.chat.completions.create(
+            response_format={"type": "json_schema",
+                             "json_schema": {"name": "anchor_verdict",
+                                             "strict": True,
+                                             "schema": schema}},
+            **kwargs)
+    except Exception as e:  # noqa: BLE001 — provider rejects response_format
+        if "response_format" not in str(e) and "json_schema" not in str(e):
+            raise
+        r = cli.chat.completions.create(**kwargs)
     u = getattr(r, "usage", None)
     tin = getattr(u, "prompt_tokens", 0) or 0
     tout = getattr(u, "completion_tokens", 0) or 0
-    return json.loads(r.choices[0].message.content), tin, tout
+    return _salvage_json(r.choices[0].message.content), tin, tout
 
 
 def render_review_item(i: int, cand: dict, verdicts: List[dict],

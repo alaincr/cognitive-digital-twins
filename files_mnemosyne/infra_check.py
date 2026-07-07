@@ -47,7 +47,7 @@ MODEL_MISMATCH = 12
 CAPABILITY = 13
 CONFIG_INVALID = 14
 
-VALID_MODES = {"api-logprobs", "api-selfreport", "vllm-local"}
+VALID_MODES = {"api-logprobs", "api-topk", "api-selfreport", "vllm-local"}
 # ANNEX_B6 §1: the echo+logprobs call is tested on a ~20-token prompt.
 PROBE_PROMPT = ("Score this short probe prompt for echo logprobs support now "
                 "so the harness can run: alpha beta gamma delta epsilon zeta.")
@@ -145,6 +145,33 @@ def check_echo_logprobs(cli, judge) -> dict:
     return {"n_logprob_tokens": len(lp.token_logprobs)}
 
 
+def check_topk_logprobs(cli, judge) -> dict:
+    """The topk scoring capability (harness --mode topk): chat completion
+    with logprobs=True + top_logprobs, honoring judge.extra_body (provider
+    pinning — without require_parameters an aggregator may route to a
+    provider that silently drops logprobs). BLOCKING for api-topk."""
+    t0 = time.time()
+    try:
+        r = cli.chat.completions.create(
+            model=judge.model, temperature=0.0, max_tokens=2,
+            logprobs=True, top_logprobs=20,
+            messages=[{"role": "user",
+                       "content": "Reply with exactly one word: probe"}],
+            extra_body=dict(getattr(judge, "extra_body", {}) or {}))
+    except Exception as e:  # noqa: BLE001
+        code = _classify_openai_error(e)
+        raise CheckError(code if code == AUTH else CAPABILITY,
+                         f"chat top_logprobs call failed: {e}")
+    lps = r.choices[0].logprobs
+    content = getattr(lps, "content", None) if lps else None
+    if not content or not getattr(content[0], "top_logprobs", None):
+        raise CheckError(CAPABILITY,
+                         "provider returned no top_logprobs on chat "
+                         "(pin a capable provider via extra_body)")
+    return {"n_alternatives": len(content[0].top_logprobs),
+            "latency_s": round(time.time() - t0, 2)}
+
+
 def check_scoring_latency(cli, judge, n_labels: int = 4) -> dict:
     """Informational: time a small n_labels echo scoring pass."""
     t0 = time.time()
@@ -174,28 +201,17 @@ def check_anchor_fixture(cli, judge, cfg: dict, judge_name: str,
     jtype = cand["jtype"]
     ch = JP.context_hash(jtype, judge.prompt_version, cand["fields"])
     user = AL.build_anchor_user(jtype, cand["fields"], ch, salt=0)
-    # anchor_call uses its own OpenAI client internally; for the check we call it
-    # through the same client seam by monkey-patching OpenAI is overkill — instead
-    # we replicate the one call via the injected client for cost + reachability.
-    schema = dict(AL.OUT_SCHEMA)
-    schema["properties"] = dict(AL.OUT_SCHEMA["properties"])
-    schema["properties"]["label"] = {"enum": list(JP.LABEL_DEFS[jtype])}
+    # THE anchor call (§1: test the exact call, not a replica) — anchor_call
+    # takes an injected client, so the check and production share one path.
     try:
-        r = cli.chat.completions.create(
-            model=judge.model, temperature=0.0, max_tokens=300,
-            messages=[{"role": "system", "content": AL.ANCHOR_SYSTEM},
-                      {"role": "user", "content": user}],
-            extra_body={"guided_json": schema})
+        verdict, tin, tout = AL.anchor_call(judge, jtype, user, cli=cli)
     except Exception as e:  # noqa: BLE001
-        raise CheckError(_classify_openai_error(e),
+        code = _classify_openai_error(e)
+        raise CheckError(code if code == AUTH else CAPABILITY,
                          f"anchor labeling call failed: {e}")
-    try:
-        verdict = json.loads(r.choices[0].message.content)
-    except Exception as e:  # noqa: BLE001
-        raise CheckError(CAPABILITY, f"anchor returned non-JSON: {e}")
-    u = getattr(r, "usage", None)
-    tin = getattr(u, "prompt_tokens", 0) or 0
-    tout = getattr(u, "completion_tokens", 0) or 0
+    if not isinstance(verdict, dict) or "label" not in verdict:
+        raise CheckError(CAPABILITY,
+                         f"anchor verdict missing 'label': {verdict!r:.120}")
     pr = _spend.judge_price(cfg, judge_name)
     usd = (tin / 1e6) * pr["input_per_mtok"] + (tout / 1e6) * pr["output_per_mtok"]
     return {"label": verdict.get("label"), "tokens_in": tin,
@@ -248,6 +264,8 @@ def check_one(cfg: dict, judge_name: str,
         elif mode == "api-logprobs":
             result["checks"]["echo_logprobs"] = check_echo_logprobs(cli, judge)
             result["checks"]["latency"] = check_scoring_latency(cli, judge)
+        elif mode == "api-topk":
+            result["checks"]["topk_logprobs"] = check_topk_logprobs(cli, judge)
         elif mode == "vllm-local":
             result["checks"]["weights_hash"] = check_weights_hash_real(judge)
             result["checks"]["echo_logprobs"] = check_echo_logprobs(cli, judge)

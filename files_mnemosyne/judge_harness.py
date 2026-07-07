@@ -113,8 +113,12 @@ class Judge:
     api_key: str = "EMPTY"
     prompt_version: int = 1
     # --- B6 keys (optional; harness reads mode/self_reported_ok, ignores rest) ---
-    mode: str = "vllm-local"        # api-logprobs | api-selfreport | vllm-local
+    mode: str = "vllm-local"   # api-logprobs | api-topk | api-selfreport | vllm-local
     self_reported_ok: bool = False  # allow the self-report fallback (I3)
+    # provider-specific request payload merged into every scoring call —
+    # e.g. OpenRouter provider pinning: {"provider": {"require_parameters": true}}
+    # (without it, routing may land on a provider that drops logprobs)
+    extra_body: dict = dataclasses.field(default_factory=dict)
 
 
 class CalStore:
@@ -195,12 +199,21 @@ def score_labels_topk(judge: Judge, system: str, user: str,
     (caller falls back to echo) if labels collide on their first token or
     the label position can't be located."""
     cli = _client(judge)
+    xb = dict(judge.extra_body or {})
+    if schema:
+        xb.setdefault("guided_json", schema)   # honored by vLLM; inert elsewhere
     r = cli.chat.completions.create(
         model=judge.model, temperature=0.0, max_tokens=64,
         logprobs=True, top_logprobs=top_logprobs,
         messages=[{"role": "system", "content": system},
                   {"role": "user", "content": user}],
-        extra_body={"guided_json": schema})
+        extra_body=xb)
+    if r.choices[0].logprobs is None or not r.choices[0].logprobs.content:
+        raise RuntimeError(
+            f"judge {judge.judge_id} (mode={judge.mode}) returned no "
+            f"top_logprobs on chat — pin a logprobs-capable provider "
+            f"(extra_body: provider.require_parameters) or use "
+            f"self_reported_ok explicitly")
     toks = r.choices[0].logprobs.content
     # locate the token that begins the label value: first token after `"label": "`
     text, idx_at = "", None
@@ -344,7 +357,16 @@ def cli_calibrate(args, judge: Judge, schemas: dict) -> None:
         ch = JP.context_hash(args.jtype, judge.prompt_version, r["fields"])
         user = JP.build_user_prompt(args.jtype, r["fields"], ch)
         labels = JP.label_order(args.jtype, ch)
-        lp = score_labels_echo(judge, JP.SYSTEM_PROMPT, user, labels)
+        if args.mode == "topk":
+            lp = score_labels_topk(judge, JP.SYSTEM_PROMPT, user, labels,
+                                   schemas.get(args.jtype))
+            if lp is None:
+                raise RuntimeError(
+                    f"topk scoring unusable for jtype {args.jtype!r} "
+                    f"(first-token label collision or missing label position) "
+                    f"— calibrate with --mode echo on a vLLM endpoint")
+        else:
+            lp = score_labels_echo(judge, JP.SYSTEM_PROMPT, user, labels)
         return [lp[l] for l in labels], labels
 
     fit_data = []
