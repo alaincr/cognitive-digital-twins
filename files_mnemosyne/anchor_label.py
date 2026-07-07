@@ -183,25 +183,40 @@ def anchor_call(judge, jtype: str, user: str, cli=None):
     schema["properties"]["label"] = {"enum": list(JP.LABEL_DEFS[jtype])}
     xb = dict(getattr(judge, "extra_body", {}) or {})
     xb.setdefault("guided_json", schema)
-    kwargs = dict(model=judge.model, temperature=0.0, max_tokens=800,
-                  messages=[{"role": "system", "content": ANCHOR_SYSTEM},
-                            {"role": "user", "content": user}],
-                  extra_body=xb)
-    try:
-        r = cli.chat.completions.create(
-            response_format={"type": "json_schema",
-                             "json_schema": {"name": "anchor_verdict",
-                                             "strict": True,
-                                             "schema": schema}},
-            **kwargs)
-    except Exception as e:  # noqa: BLE001 — provider rejects response_format
-        if "response_format" not in str(e) and "json_schema" not in str(e):
-            raise
-        r = cli.chat.completions.create(**kwargs)
+    rf = {"type": "json_schema",
+          "json_schema": {"name": "anchor_verdict", "strict": True,
+                          "schema": schema}}
+
+    def _one(extra: dict, max_tokens: int):
+        kwargs = dict(model=judge.model, temperature=0.0,
+                      max_tokens=max_tokens,
+                      messages=[{"role": "system", "content": ANCHOR_SYSTEM},
+                                {"role": "user", "content": user}],
+                      extra_body={**xb, **extra})
+        try:
+            return cli.chat.completions.create(response_format=rf, **kwargs)
+        except Exception as e:  # noqa: BLE001 — provider rejects response_format
+            if "response_format" not in str(e) and "json_schema" not in str(e):
+                raise
+            return cli.chat.completions.create(**kwargs)
+
+    # Reasoning models may spend the whole budget thinking and return EMPTY
+    # content (finish_reason=length). Attempt 1 keeps reasoning (quality);
+    # attempt 2 disables it (OpenRouter unified param) — determinism over
+    # depth for the rare overflow case.
+    r = _one({}, 4000)
+    tin = tout = 0
     u = getattr(r, "usage", None)
-    tin = getattr(u, "prompt_tokens", 0) or 0
-    tout = getattr(u, "completion_tokens", 0) or 0
-    return _salvage_json(r.choices[0].message.content), tin, tout
+    tin += getattr(u, "prompt_tokens", 0) or 0
+    tout += getattr(u, "completion_tokens", 0) or 0
+    content = r.choices[0].message.content
+    if not (content or "").strip():
+        r = _one({"reasoning": {"enabled": False}}, 800)
+        u = getattr(r, "usage", None)
+        tin += getattr(u, "prompt_tokens", 0) or 0
+        tout += getattr(u, "completion_tokens", 0) or 0
+        content = r.choices[0].message.content
+    return _salvage_json(content), tin, tout
 
 
 def render_review_item(i: int, cand: dict, verdicts: List[dict],
