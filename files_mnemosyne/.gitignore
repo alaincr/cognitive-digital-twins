@@ -25,3 +25,6 @@ secrets/
 
 # B9 probe ledger: intimate data (measured owner consistency) - local only (R5)
 ops/probe_ledger.jsonl
+
+# B1 runtime: snapshots/deltas contain the OWNER'S ENTIRE GRAPH - never commit
+sync/

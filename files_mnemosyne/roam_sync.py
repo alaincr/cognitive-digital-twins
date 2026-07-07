@@ -406,21 +406,32 @@ def archive_drop(cfg: Config, src: pathlib.Path) -> None:
 def _flatten(pages: list) -> Dict[str, Tuple[str, str, str, int]]:
     """uid -> (nfc_string, parent_uid, page_title, edit_time).
 
-    Pure. Used by both diff and validate. Raises SyncError on missing/dup uid
-    (FR-3: the uid is the diff key; a missing uid would make Graph.parse invent
-    an 'anon-N' and silently break the diff)."""
+    Pure. Used by both diff and validate. Raises SyncError on missing uid
+    (FR-3: the uid is the diff key; a missing uid would make Graph.parse
+    invent an 'anon-N' and silently break the diff).
+
+    Duplicate uids: real graphs contain multi-parent blocks (a known Roam
+    glitch in older graphs — the SAME entity appears in two trees, so the
+    content is identical). Those are deduped deterministically (first
+    occurrence in page order wins) with a one-line warning. A duplicate uid
+    with DIFFERENT content is genuine corruption and stays fatal."""
     flat: Dict[str, Tuple[str, str, str, int]] = {}
+    dupes: List[str] = []
 
     def walk(node: dict, parent: str, page: str) -> None:
         uid = node.get("uid")
         if not uid:
             raise SyncError(f"block without uid on page {page!r} "
                             f"(string={node.get('string', '')[:40]!r})")
+        string = nfc(node.get("string", "") or "")
         if uid in flat:
-            raise SyncError(f"duplicate uid {uid!r} (diff key collision)")
-        string = node.get("string", "") or ""
-        flat[uid] = (nfc(string), parent, page,
-                     int(node.get("edit-time", 0) or 0))
+            if flat[uid][0] != string:
+                raise SyncError(f"duplicate uid {uid!r} with DIFFERENT "
+                                f"content (diff key collision)")
+            dupes.append(uid)   # same entity, multi-parent: keep first
+        else:
+            flat[uid] = (string, parent, page,
+                         int(node.get("edit-time", 0) or 0))
         for c in node.get("children", []) or []:
             walk(c, uid, page)
 
@@ -428,6 +439,10 @@ def _flatten(pages: list) -> Dict[str, Tuple[str, str, str, int]]:
         title = page.get("title", "untitled")
         for b in page.get("children", []) or []:
             walk(b, "", title)
+    if dupes:
+        log(f"warning: {len(dupes)} multi-parent block(s) deduped "
+            f"(first occurrence kept): {sorted(set(dupes))[:5]}"
+            f"{'…' if len(set(dupes)) > 5 else ''}")
     return flat
 
 
@@ -798,7 +813,21 @@ def self_test() -> None:
         validate(mini_dup, None, force=False)
         _ok(n, False, "dup uid should raise")
     except SyncError:
-        _ok(n, True, "duplicate uid rejected (fatal)")
+        _ok(n, True, "duplicate uid + DIFFERENT content rejected (fatal)")
+    # multi-parent block (same uid, IDENTICAL content — real Roam glitch,
+    # observed on the owner's graph): deduped, first occurrence kept
+    twin = {"uid": "mp1", "string": "même contenu multi-parent",
+            "create-time": 1, "edit-time": 2, "children": []}
+    multi = [{"title": "A", "edit-time": 2, "children": [dict(twin)]},
+             {"title": "B", "edit-time": 2,
+              "children": [{"uid": "b1", "string": "porteur du doublon",
+                            "create-time": 1, "edit-time": 2,
+                            "children": [dict(twin)]}]}]
+    v = validate(multi, None, force=False)
+    _ok(n, v["block_count"] == 2,
+        "multi-parent identical-content dup deduped (kept first), not fatal")
+    _ok(n, _flatten(multi)["mp1"][2] == "A",
+        "dedup is deterministic: first occurrence in page order wins")
     try:
         validate(mini_trunc, {"block_count": 7}, force=False)
         _ok(n, False, "truncated should raise")
