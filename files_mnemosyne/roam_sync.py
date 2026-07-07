@@ -204,7 +204,11 @@ def _post(url: str, body: dict, token: str, timeout: float,
                     raise SyncError(f"redirect {e.code} without Location")
                 cur_url = loc
                 hop += 1
-                log(f"redirect {e.code} -> peer (hop {hop})")
+                # every Roam API request bounces once to a peer — logging each
+                # hop drowns real progress in 3000+ identical lines on a full
+                # pull; log only unusual chains (hop >= 2)
+                if hop >= 2:
+                    log(f"redirect {e.code} -> peer (hop {hop})")
                 continue
             if e.code == 429 or 500 <= e.code < 600:
                 if attempt >= retries:
@@ -264,25 +268,78 @@ def fetch_api(cfg: Config) -> List[dict]:
     res = _post(base + "/q", q, cfg.token, cfg.timeout,
                 cfg.max_redirects, cfg.max_retries)
     rows = res.get("result", res) if isinstance(res, dict) else res
-    pages: List[dict] = []
+    log(f"graph {cfg.graph}: {len(rows)} pages to pull "
+        f"(~{len(rows) * cfg.rate_delay / 60:.0f} min at "
+        f"{cfg.rate_delay:.0f} req/s)")
     selector = ("[:block/uid :node/title :block/string :block/order "
                 ":create/time :edit/time {:block/children ...}]")
-    for row in rows:
+    # pull-many in batches (annex B1 §2: "à préférer si disponible") — at
+    # 18k+ pages, per-page pulling is a 5-hour job; batches of 30 make it
+    # ~10 min at the same polite 1 req/s. Falls back to per-page if the
+    # endpoint is unavailable on this plan.
+    try:
+        return _fetch_batched(cfg, base, selector, rows)
+    except SyncError as e:
+        log(f"pull-many unavailable ({e}); falling back to per-page pulls")
+        return _fetch_single(cfg, base, selector, rows)
+
+
+def _page_from_node(title: str, node: Optional[dict]) -> dict:
+    node = node or {}
+    et = node.get(":edit/time", 0)
+    kids = node.get(":block/children", []) or []
+    kids = sorted(kids, key=lambda c: c.get(":block/order", 0))
+    return {"title": title, "edit-time": et,
+            "children": [_normalize_pull(title, et, c) for c in kids]}
+
+
+def _fetch_batched(cfg: Config, base: str, selector: str,
+                   rows: list, batch_size: int = 30) -> List[dict]:
+    pages: List[dict] = []
+    for start in range(0, len(rows), batch_size):
+        batch = rows[start:start + batch_size]
+        if start and (start // batch_size) % 20 == 0:
+            log(f"pull progress: {start}/{len(rows)} pages")
+        eids = "[" + " ".join(f'[:block/uid "{u}"]' for u, _ in batch) + "]"
+        for attempt in range(cfg.max_retries):
+            try:
+                pr = _post(base + "/pull-many",
+                           {"eids": eids, "selector": selector},
+                           cfg.token, cfg.timeout, cfg.max_redirects, 1)
+                nodes = pr.get("result", pr) if isinstance(pr, dict) else pr
+                if not isinstance(nodes, list) or len(nodes) != len(batch):
+                    raise SyncError(
+                        f"pull-many shape mismatch: {len(batch)} eids -> "
+                        f"{type(nodes).__name__}"
+                        f"{'/' + str(len(nodes)) if isinstance(nodes, list) else ''}")
+                for (_, title), node in zip(batch, nodes):
+                    pages.append(_page_from_node(title, node))
+                break
+            except SyncError as e:
+                if start == 0:
+                    raise            # first batch failing = endpoint absent
+                if attempt + 1 >= cfg.max_retries:
+                    raise SyncError(f"incomplete pull: batch @{start}: {e}")
+                log(f"pull-many retry {attempt + 1} @{start}")
+                time.sleep(cfg.rate_delay)
+        time.sleep(cfg.rate_delay)
+    return pages
+
+
+def _fetch_single(cfg: Config, base: str, selector: str,
+                  rows: list) -> List[dict]:
+    pages: List[dict] = []
+    for i, row in enumerate(rows):
         puid, title = row[0], row[1]
+        if i and i % 100 == 0:
+            log(f"pull progress: {i}/{len(rows)} pages")
         for attempt in range(cfg.max_retries):
             try:
                 pr = _post(base + "/pull",
                            {"eid": f'[:block/uid "{puid}"]', "selector": selector},
                            cfg.token, cfg.timeout, cfg.max_redirects, 1)
                 node = pr.get("result", pr)
-                kids = node.get(":block/children", []) or []
-                kids = sorted(kids, key=lambda c: c.get(":block/order", 0))
-                pages.append({
-                    "title": title,
-                    "edit-time": node.get(":edit/time", 0),
-                    "children": [_normalize_pull(title, node.get(":edit/time", 0), c)
-                                 for c in kids],
-                })
+                pages.append(_page_from_node(title, node))
                 break
             except SyncError as e:
                 if attempt + 1 >= cfg.max_retries:

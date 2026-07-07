@@ -304,7 +304,13 @@ def judge_candidate(judge: Judge, calstore: CalStore, cand: dict,
     base = {"jtype": jtype, "subjects": cand["subjects"],
             "judge_id": judge.judge_id, "cal_version": cal["cal_version"],
             "context_hash": ch, "ts": now_iso(),
-            "caused_by": cand.get("caused_by")}
+            "caused_by": cand.get("caused_by"),
+            # B14 FR-1 (day-1 rider): persist the full calibrated distribution,
+            # not just the argmax — the dreamer resamples it later. Additive
+            # field (INTERFACES §4.2); every judgment emitted WITHOUT it is
+            # point-mass forever (a world that can never be re-dreamed).
+            "label_distribution": {l: round(p, 4)
+                                   for l, p in sorted(probs.items())}}
     if len(pset) == 1 and agreed:
         label = pset[0]
         ev = {**base, "event": "judgment.emitted", "label": label,
@@ -512,6 +518,37 @@ def self_test() -> None:
         ok(raised, "api-logprobs + no logprobs + self_reported_ok=false => raises")
     finally:
         globals()["_client"] = _orig_client
+
+    # --- B14 FR-1 (day-1 rider): outbox events carry the full calibrated
+    # distribution, not just the argmax — mocked judge_once seam ---
+    import tempfile as _tf
+    _orig_jo = globals()["judge_once"]
+    globals()["judge_once"] = lambda *a, **k: (
+        "ctxhash1", {"supports": 0.71, "refines": 0.24, "opposes": 0.05},
+        ["supports"])
+
+    class _CalStore:
+        def get(self, jtype, judge_id):
+            return {"cal_version": "cal-test"}
+    try:
+        with _tf.TemporaryDirectory() as _td:
+            _ob = pathlib.Path(_td) / "outbox.jsonl"
+            _j = Judge(judge_id="j@x#p1", model="m", family="qwen",
+                       base_url="http://x/v1")
+            ev = judge_candidate(_j, _CalStore(),
+                                 {"jtype": "summarize_now",
+                                  "subjects": ["n1"],
+                                  "fields": {"cluster_labels": "x",
+                                             "member_snippets": "y",
+                                             "n_members": "3"}},
+                                 {}, _ob, "echo")
+        ld = ev.get("label_distribution")
+        ok(ld == {"opposes": 0.05, "refines": 0.24, "supports": 0.71},
+           "B14 rider: label_distribution persisted (sorted keys)")
+        ok(abs(sum(ld.values()) - 1.0) < 1e-6 and ev["confidence"] == 0.71,
+           "B14 rider: distribution sums to 1, argmax == confidence")
+    finally:
+        globals()["judge_once"] = _orig_jo
     print("all self-tests passed")
 
 

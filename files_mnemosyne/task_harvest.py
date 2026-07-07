@@ -354,15 +354,53 @@ def _parse_ts(ts: str) -> Optional[_dt.datetime]:
 # harvest command
 # ---------------------------------------------------------------------------
 
+def _owner_version(ts_iso: str) -> str:
+    """B9 FR-5: the owner is a VERSIONED judge, rolling per semester."""
+    y, m = int(ts_iso[0:4]), int(ts_iso[5:7])
+    return f"owner@{y}-H{1 if m <= 6 else 2}"
+
+
+def append_probe_ledger(path: pathlib.Path, events: List[dict]) -> int:
+    """B9 FR-1 (day-1 rider): one row per harvested answer — the registry of
+    what is re-askable later. Ships with the loop even though scoring comes
+    months after: every un-ledgered answer is a probe that can never be asked.
+    `probe_of` is null for fresh answers (probe tasks don't exist yet); the
+    scoring join arrives with B9 FR-3. Local-only data (B9 R5): gitignored.
+    """
+    rows = 0
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as f:
+        for ev in events:
+            if ev["event"] not in ("human.response", "human.response.amended"):
+                continue  # ambiguous answers are not re-askable material
+            ts = _now_iso()
+            f.write(json.dumps(
+                {"task_id": ev["task_id"], "task_type": ev["task_type"],
+                 "jtype": (ev.get("route") or {}).get("jtype"),
+                 "route": ev.get("route") or {},
+                 "choice": ev.get("choice"),
+                 "response_hash": ev["response_hash"],
+                 "answered_ts": ev["answered_ts"], "ledgered_ts": ts,
+                 "owner_version": _owner_version(ts),
+                 "domain": None,          # rgpd|these — classifier arrives with B9
+                 "probe_of": None},
+                ensure_ascii=False) + "\n")
+            rows += 1
+    return rows
+
+
 def harvest(snapshot_path: pathlib.Path, out_path: pathlib.Path,
             ledger_path: Optional[pathlib.Path],
-            taskgen_ledger_path: Optional[pathlib.Path] = None) -> dict:
+            taskgen_ledger_path: Optional[pathlib.Path] = None,
+            probe_ledger_path: Optional[pathlib.Path] = None) -> dict:
     graph = RH.Graph.parse(json.loads(snapshot_path.read_text(encoding="utf-8")))
     tasks = find_tasks(graph)
     prior = load_ledger(ledger_path) if ledger_path else {}
     routes = (load_taskgen_routes(taskgen_ledger_path)
               if taskgen_ledger_path else {})
     events, updates = emit_events(tasks, prior, routes)
+    if probe_ledger_path:
+        append_probe_ledger(probe_ledger_path, events)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("a", encoding="utf-8") as f:
@@ -663,6 +701,28 @@ def _self_test() -> None:
     ok(load_taskgen_routes(_FIXTURE / "nonexistent.jsonl") == {},
        "missing taskgen ledger -> empty routes, no crash")
 
+    # ---- B9 FR-1 (day-1 rider): probe ledger --------------------------------
+    import tempfile as _tf2
+    with _tf2.TemporaryDirectory() as _td2:
+        pl = pathlib.Path(_td2) / "probe_ledger.jsonl"
+        evs_pl, _ = emit_events(tasks, prior, routes)
+        n = append_probe_ledger(pl, evs_pl)
+        rows = [json.loads(l) for l in pl.read_text().splitlines()]
+        answered = [e for e in evs_pl
+                    if e["event"] in ("human.response",
+                                      "human.response.amended")]
+        ok(n == len(answered) and len(rows) == n,
+           "probe ledger: one row per answered task (ambiguous excluded)")
+        ok(all(r["probe_of"] is None for r in rows),
+           "probe ledger: fresh answers carry probe_of=null")
+        ok(all(r["owner_version"].startswith("owner@20")
+               and r["owner_version"][-3] == "-" or "-H" in r["owner_version"]
+               for r in rows) and
+           all("-H" in r["owner_version"] for r in rows),
+           "probe ledger: owner_version = owner@YYYY-H1|H2")
+        ok(all(r["response_hash"] and r["task_type"] for r in rows),
+           "probe ledger: rows carry hash + type (the scoring join keys)")
+
     print("all task_harvest self-tests passed")
 
 
@@ -681,6 +741,8 @@ def main() -> None:
     h.add_argument("--ledger", default=None, help="harvest_ledger.jsonl")
     h.add_argument("--taskgen-ledger", default=None,
                    help="taskgen_ledger.jsonl (route join by task_id)")
+    h.add_argument("--probe-ledger", default=None,
+                   help="probe_ledger.jsonl (B9 FR-1 day-1 rider; local-only)")
 
     s = sub.add_parser("stats")
     s.add_argument("--window", default="7d")
@@ -700,7 +762,9 @@ def main() -> None:
         harvest(pathlib.Path(args.snapshot), pathlib.Path(args.out),
                 pathlib.Path(args.ledger) if args.ledger else None,
                 pathlib.Path(args.taskgen_ledger)
-                if args.taskgen_ledger else None)
+                if args.taskgen_ledger else None,
+                pathlib.Path(args.probe_ledger)
+                if args.probe_ledger else None)
     elif args.cmd == "stats":
         cmd_stats(args)
 

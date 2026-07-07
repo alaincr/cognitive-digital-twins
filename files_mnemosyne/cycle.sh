@@ -72,7 +72,7 @@ fi
 # harvest ledger makes appends idempotent; $C gets a per-cycle archive copy.
 if todo 2; then say 2 "task_harvest -> outbox_human.jsonl (append)"
   if blocked 1; then echo "  skipped (stage 1 failed)"; skip 2
-  elif run "python3 task_harvest.py harvest --snapshot sync/snapshots/latest.json --out '$OPS/outbox_human.jsonl' --ledger '$OPS/harvest_ledger.jsonl' --taskgen-ledger '$OPS/taskgen_ledger.jsonl'"; then
+  elif run "python3 task_harvest.py harvest --snapshot sync/snapshots/latest.json --out '$OPS/outbox_human.jsonl' --ledger '$OPS/harvest_ledger.jsonl' --taskgen-ledger '$OPS/taskgen_ledger.jsonl' --probe-ledger '$OPS/probe_ledger.jsonl'"; then
     run "cp -f '$OPS/outbox_human.jsonl' '$C/outbox_human.jsonl' 2>/dev/null || true"
     # anti-fatigue: persist the budget factor task_gen reads at stage 8 (FR-4)
     run "python3 task_harvest.py stats --window 7d --ledger '$OPS/harvest_ledger.jsonl' --taskgen-ledger '$OPS/taskgen_ledger.jsonl' --apply-state '$OPS/taskgen_state.json' >/dev/null || true"
