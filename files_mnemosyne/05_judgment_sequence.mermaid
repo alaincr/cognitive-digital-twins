@@ -1,0 +1,37 @@
+sequenceDiagram
+  autonumber
+  participant PF as Pre-filter
+  participant H as Judge harness Python
+  participant V as vLLM judge Qwen3-8B
+  participant O as ops outbox JSONL
+  participant C as Consolidator ingest.clj
+  participant A as Anchor LLM
+  participant G as Event log and graph
+
+  PF->>H: candidate (jtype, subjects, fields)
+  H->>H: context_hash + prompt with seeded label order
+  loop one echo-score per label (shared prefix cached)
+    H->>V: completions echo=true logprobs
+    V-->>H: token logprobs of label suffix
+  end
+  H->>H: temperature-scale then conformal gate
+  alt singleton prediction set
+    H->>O: judgment.emitted + context record
+  else ambiguous or order disagreement
+    H->>O: judgment.abstained
+  end
+  Note over H,O: same_entity runs BOTH item orders (T2 agreement)
+  C->>O: tail with byte offset (UTF-8 safe)
+  C->>C: idempotency check (judge, hash, label)
+  alt anchor verdict exists on subject
+    C->>G: promote directly (anchor supremacy)
+  else T2 panel
+    C->>C: k-of-n distinct model families agree
+    alt agreement
+      C->>G: promote domain fact with prov from-judgment
+    else dissent
+      C->>O: escalation row (fields-free)
+      A->>O: anchor verdict returns as judgment.emitted
+    end
+  end
+  G-->>PF: new events generate new candidates

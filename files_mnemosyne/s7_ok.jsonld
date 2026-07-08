@@ -1,0 +1,29 @@
+[
+ {
+  "@id": "urn:mnemo:node:d1",
+  "@type": [
+   "https://mnemosyne.dev/ns#StaleDerived"
+  ],
+  "https://mnemosyne.dev/ns#stale": [
+   {
+    "@value": true
+   }
+  ]
+ },
+ {
+  "@id": "urn:mnemo:node:t1",
+  "@type": [
+   "https://mnemosyne.dev/ns#Task"
+  ],
+  "https://mnemosyne.dev/ns#parent": [
+   {
+    "@id": "urn:mnemo:node:d1"
+   }
+  ],
+  "https://mnemosyne.dev/ns#status": [
+   {
+    "@value": "open"
+   }
+  ]
+ }
+]

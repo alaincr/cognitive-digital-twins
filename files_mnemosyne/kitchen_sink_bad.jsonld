@@ -1,0 +1,144 @@
+[
+ {
+  "@id": "urn:mnemo:node:s1_bad:pa1",
+  "@type": [
+   "https://mnemosyne.dev/ns#ProcessingActivity"
+  ],
+  "https://mnemosyne.dev/ns#text": [
+   {
+    "@value": "no basis"
+   }
+  ]
+ },
+ {
+  "@id": "urn:mnemo:node:s2_bad:clm1",
+  "@type": [
+   "https://mnemosyne.dev/ns#Claim"
+  ],
+  "https://mnemosyne.dev/ns#text": [
+   {
+    "@value": "c"
+   }
+  ]
+ },
+ {
+  "@id": "urn:mnemo:node:s2_bad:e1",
+  "@type": [
+   "https://mnemosyne.dev/ns#DiscourseEdge"
+  ],
+  "https://mnemosyne.dev/ns#from": [
+   {
+    "@id": "urn:mnemo:node:s2_bad:evd1"
+   }
+  ],
+  "https://mnemosyne.dev/ns#to": [
+   {
+    "@id": "urn:mnemo:node:s2_bad:clm1"
+   }
+  ],
+  "https://mnemosyne.dev/ns#edgeType": [
+   {
+    "@value": "opposes"
+   }
+  ]
+ },
+ {
+  "@id": "urn:mnemo:node:s3_bad:p1",
+  "@type": [
+   "https://mnemosyne.dev/ns#PermanentNote",
+   "https://mnemosyne.dev/ns#Proposition"
+  ],
+  "https://mnemosyne.dev/ns#faithful": [
+   {
+    "@value": true
+   }
+  ]
+ },
+ {
+  "@id": "urn:mnemo:node:s4_bad:kw1",
+  "@type": [
+   "https://mnemosyne.dev/ns#RegisterKeyword"
+  ],
+  "https://mnemosyne.dev/ns#keyword": [
+   {
+    "@value": "rgpd"
+   }
+  ],
+  "https://mnemosyne.dev/ns#entry": [
+   {
+    "@id": "urn:mnemo:node:s4_bad:n1"
+   },
+   {
+    "@id": "urn:mnemo:node:s4_bad:n2"
+   },
+   {
+    "@id": "urn:mnemo:node:s4_bad:n3"
+   }
+  ]
+ },
+ {
+  "@id": "urn:mnemo:node:s5_bad:j1",
+  "@type": [
+   "https://mnemosyne.dev/ns#Judgment"
+  ],
+  "https://mnemosyne.dev/ns#judge": [
+   {
+    "@value": "qwen@a#p1"
+   }
+  ],
+  "https://mnemosyne.dev/ns#contextHash": [
+   {
+    "@value": "h"
+   }
+  ],
+  "https://mnemosyne.dev/ns#label": [
+   {
+    "@value": "supports"
+   }
+  ]
+ },
+ {
+  "@id": "urn:mnemo:node:s6_bad:pp1",
+  "@type": [
+   "https://mnemosyne.dev/ns#Proposition"
+  ],
+  "https://mnemosyne.dev/ns#kind": [
+   {
+    "@value": "literature"
+   }
+  ]
+ },
+ {
+  "@id": "urn:mnemo:node:s6_bad:st1",
+  "@type": [
+   "https://mnemosyne.dev/ns#Stance"
+  ],
+  "https://mnemosyne.dev/ns#basis": [
+   {
+    "@id": "urn:mnemo:node:s6_bad:pp1"
+   }
+  ]
+ },
+ {
+  "@id": "urn:mnemo:node:s7_bad:d1",
+  "@type": [
+   "https://mnemosyne.dev/ns#StaleDerived"
+  ],
+  "https://mnemosyne.dev/ns#stale": [
+   {
+    "@value": true
+   }
+  ]
+ },
+ {
+  "@id": "urn:mnemo:node:s8_bad:p1",
+  "@type": [
+   "https://mnemosyne.dev/ns#PermanentNote"
+  ],
+  "https://mnemosyne.dev/ns#continues": [
+   {
+    "@id": "urn:mnemo:node:s8_bad:p0"
+   }
+  ]
+ }
+]

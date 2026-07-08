@@ -1,0 +1,72 @@
+name: clojure
+
+# B4 executable gate. The Clojure substrate is reviewed-not-executed in the
+# authoring sandbox (no JVM/Clojars there); THIS job is where it actually runs:
+# it folds the committed golden fixtures, replays them, and asserts the crash /
+# idempotence / state-hash invariants (PRD B4 §7). It also runs the Python
+# self-tests for the B4 stage tools so the two halves of the contract are gated
+# together.
+
+on:
+  push:
+    paths:
+      - "files_mnemosyne/**"
+      - ".github/workflows/clojure.yml"
+  pull_request:
+    paths:
+      - "files_mnemosyne/**"
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: files_mnemosyne
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Clojure
+        uses: DeLaGuardo/setup-clojure@12.5
+        with:
+          cli: latest
+
+      - name: Cache deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2
+            ~/.gitlibs
+            ~/.deps.clj
+          key: cljdeps-${{ hashFiles('files_mnemosyne/deps.edn') }}
+
+      - name: Python deps (allowed third-party, SPEC-00 §3.1)
+        run: pip install pyyaml openai numpy
+
+      - name: Python self-tests (all bricks + SPEC-00 §5 regression)
+        run: |
+          python3 -m py_compile *.py
+          for t in judge_harness zettel_prompts distill_judge prefilter \
+                   roam_sync roam_harvest roam_writeback task_gen \
+                   task_harvest human_prompts calset_merge embed_index \
+                   infra_check spend eval_harness cycle_tools; do
+            echo "== $t =="; python3 $t.py self-test || exit 1
+          done
+          python3 roam_harvest.py demo --out-dir /tmp/reg >/dev/null
+
+      - name: Shell syntax
+        run: bash -n cycle.sh first_judge.sh
+
+      - name: Clojure golden-replay + crash + state-hash tests
+        run: clojure -M:test

@@ -1,0 +1,14 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix mnemo: <https://mnemosyne.dev/ns#> .
+@prefix msh: <https://mnemosyne.dev/shapes#> .
+# origin: advisory staleness pattern. Exporter materializes mnemo:StaleDerived
+# for stale=true.  PORT-RISK: qualifiedValueShape.
+msh:S7 a sh:NodeShape ;
+  sh:targetClass mnemo:StaleDerived ;
+  sh:property msh:S7p .
+msh:S7p a sh:PropertyShape ;
+  sh:path [ sh:inversePath mnemo:parent ] ;
+  sh:qualifiedValueShape [ sh:property [ sh:path mnemo:status ; sh:hasValue "open" ] ] ;
+  sh:qualifiedMinCount 1 ;
+  sh:severity sh:Warning ;
+  sh:message "Derived node is stale but no open task addresses it: open a recompute task." .

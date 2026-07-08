@@ -1,0 +1,145 @@
+# fixtures/eval/seeded_pairs.yaml — E2 planted contradictions (versioned fixture).
+#
+# 15 contradiction pairs + 10 control (non-contradictory) pairs.
+# Half rgpd / half thèse for each kind, per ANNEX_B7 §2.
+# `seed-contradictions` writes each block to [[M/Eval/Seeded]] with
+# `eval-seeded:: true`; `check-seeded` looks for a promoted `opposes` edge
+# and/or an S2 flag between the two uids of each contradiction pair, and
+# asserts controls stay clean (false-positive check).
+#
+# Each pair carries a stable `id`; the a/b block uids in the live graph are
+# derived deterministically as  <id>-a / <id>-b  by seed-contradictions
+# (idempotency_key = sha256(id + "a"|"b")).
+
+# ---- CONTRADICTIONS — RGPD (8) --------------------------------------------
+- id: seed-01
+  kind: contradiction
+  a: "Le registre des traitements est obligatoire dès le premier salarié."
+  b: "Le registre n'est obligatoire qu'au-delà de 250 salariés, sauf exceptions."
+  domain: rgpd
+- id: seed-02
+  kind: contradiction
+  a: "La base légale de la prospection B2B est le consentement préalable explicite."
+  b: "La base légale de la prospection B2B est l'intérêt légitime, sans consentement."
+  domain: rgpd
+- id: seed-03
+  kind: contradiction
+  a: "Une violation de données doit être notifiée à la CNIL sous 72 heures."
+  b: "La notification d'une violation à la CNIL n'est soumise à aucun délai contraignant."
+  domain: rgpd
+- id: seed-04
+  kind: contradiction
+  a: "La durée de conservation des données de prospection est de 3 ans après le dernier contact."
+  b: "Les données de prospection peuvent être conservées sans limite de durée."
+  domain: rgpd
+- id: seed-05
+  kind: contradiction
+  a: "Une analyse d'impact (AIPD) est requise pour tout traitement à grande échelle de données sensibles."
+  b: "L'analyse d'impact n'est jamais obligatoire, elle reste une simple recommandation."
+  domain: rgpd
+- id: seed-06
+  kind: contradiction
+  a: "Le sous-traitant doit permettre un droit d'audit au responsable de traitement."
+  b: "Le sous-traitant n'est jamais tenu d'accorder un droit d'audit."
+  domain: rgpd
+- id: seed-07
+  kind: contradiction
+  a: "Le consentement doit pouvoir être retiré aussi facilement qu'il a été donné."
+  b: "Une fois donné, le consentement est définitif et ne peut être retiré."
+  domain: rgpd
+- id: seed-08
+  kind: contradiction
+  a: "Les transferts hors UE exigent des garanties appropriées comme les clauses contractuelles types."
+  b: "Les transferts hors UE sont libres et ne requièrent aucune garantie particulière."
+  domain: rgpd
+
+# ---- CONTRADICTIONS — THÈSE (7) -------------------------------------------
+- id: seed-09
+  kind: contradiction
+  a: "Le substrat événementiel est la seule source de vérité, reconstructible par fold du journal."
+  b: "Le graphe DataScript en mémoire est la source de vérité, le journal n'est qu'un cache."
+  domain: these
+- id: seed-10
+  kind: contradiction
+  a: "Un jugement est un fait typé append-only qui ne réécrit jamais le contenu."
+  b: "Un jugement modifie directement le contenu du bloc jugé pour le corriger."
+  domain: these
+- id: seed-11
+  kind: contradiction
+  a: "La confiance d'un juge est mesurée par logprobs et gate conforme, jamais auto-rapportée."
+  b: "La confiance d'un juge est le score de confiance que le modèle déclare lui-même."
+  domain: these
+- id: seed-12
+  kind: contradiction
+  a: "Seul le consolidateur promeut des jugements en faits de domaine (split CALM)."
+  b: "N'importe quel worker en amont peut promouvoir directement des faits de domaine."
+  domain: these
+- id: seed-13
+  kind: contradiction
+  a: "L'abstention du juge escalade la question vers un modèle ancre plus fort."
+  b: "L'abstention du juge clôt la question sans aucune escalade."
+  domain: these
+- id: seed-14
+  kind: contradiction
+  a: "Les promotions T2 restent gated sur l'ancre ou l'humain, jamais automatisées."
+  b: "Les promotions T2 sont entièrement automatisées par la flotte de micro-juges."
+  domain: these
+- id: seed-15
+  kind: contradiction
+  a: "Roam est la source de vérité opérationnelle ; le dépôt git est la spécification."
+  b: "Le dépôt git est la source de vérité opérationnelle ; Roam n'est qu'un miroir jetable."
+  domain: these
+
+# ---- CONTROLS — RGPD (5) — NON contradictoires (contrôle négatif) ---------
+- id: ctrl-01
+  kind: control
+  a: "Le DPO est le point de contact pour les personnes concernées."
+  b: "Le registre des traitements recense les finalités de chaque traitement."
+  domain: rgpd
+- id: ctrl-02
+  kind: control
+  a: "Le principe de minimisation limite les données collectées au strict nécessaire."
+  b: "Le principe de limitation des finalités interdit les usages incompatibles."
+  domain: rgpd
+- id: ctrl-03
+  kind: control
+  a: "La CNIL est l'autorité de contrôle en France."
+  b: "L'EDPB coordonne les autorités de contrôle au niveau européen."
+  domain: rgpd
+- id: ctrl-04
+  kind: control
+  a: "Le droit d'accès permet à la personne d'obtenir une copie de ses données."
+  b: "Le droit à la portabilité permet de récupérer ses données dans un format structuré."
+  domain: rgpd
+- id: ctrl-05
+  kind: control
+  a: "Une clause contractuelle type encadre un transfert hors UE."
+  b: "Les règles d'entreprise contraignantes encadrent les transferts intra-groupe."
+  domain: rgpd
+
+# ---- CONTROLS — THÈSE (5) — NON contradictoires ---------------------------
+- id: ctrl-06
+  kind: control
+  a: "Le préfiltre décide QUAND juger via des dirty-marks budgétés."
+  b: "Le juge décide QUOI répondre en produisant un label du vocabulaire fermé."
+  domain: these
+- id: ctrl-07
+  kind: control
+  a: "La couche embeddings fournit des voisins :sim/near pour les bridges."
+  b: "Le harvest lexical fournit des candidats continues par similarité de chaîne."
+  domain: these
+- id: ctrl-08
+  kind: control
+  a: "Le propositionizer découpe un bloc en propositions atomiques."
+  b: "La couche de croyances calcule le statut d'un claim à partir de ses arêtes."
+  domain: these
+- id: ctrl-09
+  kind: control
+  a: "Le linter SHACL vérifie les shapes S1 à S8 sur l'export JSON-LD."
+  b: "Le write-back écrit les jugements acceptés dans les pages M/* de Roam."
+  domain: these
+- id: ctrl-10
+  kind: control
+  a: "La distillation compile l'ancre en juges fine-tunés moins coûteux."
+  b: "Le harnais d'évaluation produit un rapport hebdomadaire à cinq métriques."
+  domain: these

@@ -1,0 +1,65 @@
+erDiagram
+  JUDGE ||--o{ JUDGMENT : emits
+  JUDGMENT }o--o{ NODE : about_subjects
+  JUDGMENT ||--o{ DOMAIN_FACT : licenses
+  EVENT ||--o{ NODE : asserts_prov
+  EVENT ||--o{ DOMAIN_FACT : asserts_prov
+  EVENT }o--|| EVENT : caused_by
+  NODE ||--o{ EDGE : from
+  NODE ||--o{ EDGE : to
+  DOMAIN_FACT ||--o| EDGE : reifies
+  JUDGMENT ||--o{ ANCHOR_CHECK : sampled_by
+  NODE ||--o{ FLAG : flagged_by
+  NODE ||--o{ TASK : opens
+
+  JUDGE {
+    string judge_id PK
+    string model
+    string family
+    string weights_hash
+    int prompt_version
+    bool quarantined
+  }
+  JUDGMENT {
+    string judgment_id PK
+    string jtype
+    string label
+    float confidence
+    string status
+    string context_hash
+    string cal_version
+    string subjects_vec
+  }
+  EVENT {
+    string event_id PK
+    string event_type
+    string actor
+    string caused_by FK
+    string timestamp
+  }
+  NODE {
+    string node_id PK
+    string node_type
+    bool derived_stale
+    bool prop_faithful
+  }
+  EDGE {
+    string edge_type
+    string from_node FK
+    string to_node FK
+  }
+  DOMAIN_FACT {
+    string node_id PK
+    string prov_from_judgment FK
+  }
+  ANCHOR_CHECK {
+    bool agrees
+    string anchor_label
+  }
+  FLAG {
+    string flag_kind
+  }
+  TASK {
+    string status
+    int depth
+  }

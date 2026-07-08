@@ -1,230 +1,290 @@
-# CLAUDE.md — Wiki della Tesi
+# CLAUDE.md — Cognitive Architecture Research System (Roam-native)
 
-Questo file è il tuo manuale operativo. Leggilo all'inizio di ogni sessione. Definisce la struttura della wiki, i tipi di entità, i workflow e le convenzioni da seguire.
+This is the operating manual for any agent (Claude Code session, Paperclip
+heartbeat, manual session) working on this project. Read it at the start of
+every session.
 
----
+The previous flat-file manual (Italian, scaffolding-tesi flow) is archived
+at `docs/CLAUDE-flatfile.md`. It is the historical record of how the thesis
+vault was operated; this file is the live manual and supersedes it.
 
-## Ruolo
+A copy of this document also lives in Roam as `[[CLAUDE.md]]` so that the
+persistent agent has the same instructions when it boots without filesystem
+access.
 
-Sei il maintainer della wiki personale di una tesi di ricerca. Il tuo lavoro è:
-
-- Ingerire fonti (paper, call, approfondimenti) ed estrarne conoscenza strutturata
-- Mantenere aggiornato lo **scaffolding della tesi** — il documento centrale che riflette lo stato dell'argomentazione
-- Rispondere a domande consultando la wiki (non ri-derivando da zero)
-- Archiviare le buone risposte come pagine wiki così la conoscenza si accumula
-- Fare periodicamente il lint della wiki per contraddizioni, contenuti stantii e pagine orfane
-
-Non modifichi mai file in `raw/`. Possiedi tutto ciò che è in `wiki/`.
-
----
-
-## Struttura delle directory
-
-```
-raw/                              ← documenti sorgente immutabili (leggi, non scrivere mai)
-  papers/
-    <paper-slug>/
-      paper.pdf (o .md)           ← originale
-      riassunto.md                ← opzionale
-      youtuber.md                 ← opzionale (versione divulgativa)
-      valore-tesi.md              ← IL FILE PIÙ IMPORTANTE
-  calls/
-    <call-slug>.md                ← trascrizioni di call
-  project/
-    proposta/
-      proposta-tesi.md
-      feedback-claude.md
-      base-teorica.md
-    approfondimenti/
-      <tema>.md                   ← chat approfondite su temi specifici
-
-wiki/
-  index.md                        ← catalogo master di tutte le pagine wiki
-  log.md                          ← log cronologico append-only
-  overview.md                     ← sintesi ad alto livello della tesi
-  glossary.md                     ← terminologia, definizioni, regole di stile
-  scaffolding-tesi.md             ← DOCUMENTO CENTRALE: struttura argomentativa della tesi
-  sources/                        ← una pagina per ogni fonte raw
-  concepts/                       ← una pagina per ogni concetto teorico
-  personas/                       ← una pagina per ogni audience rilevante (se applicabile)
-  analyses/                       ← tabelle comparative, gap analysis, output di ricerca
-  style/                          ← convenzioni di scrittura della tesi
-```
+> **ADR-001 (ratified 2026-07-04, `files_mnemosyne/prd/ADR-001.md`) amends
+> this manual.** The single source of epistemic truth is the Mnemosyne
+> append-only event log (`files_mnemosyne/store/events.jsonl`); Roam is the
+> human capture-and-restitution surface (its export feeds the loop via B1,
+> the `M/*` namespace is its projection via B2); the repo remains the spec.
+> The Paperclip 22-agent organization is superseded by behaviors + judges +
+> the single consolidator — `agents/` is archived stratum-3 material, and
+> any resurrection requires a new ADR. Where the text below says "Roam is
+> the truth", read it through this amendment.
 
 ---
 
-## Il documento centrale: `wiki/scaffolding-tesi.md`
+## What this system is
 
-Questo è il documento più importante della wiki. Riflette la struttura argomentativa attuale della tesi. È costruito incrementalmente:
+A self-referential cognitive architecture whose **source of epistemic truth
+is the Mnemosyne append-only event log** (ADR-001), with **Roam Research as
+the human capture-and-restitution surface**, and which studies its own
+components as the research subject. The git repo is a versioned meta-layer:
+agent configs, skills, diagrams, immutable raw sources, and this manual.
+Live human-facing knowledge is captured and restituted in Roam.
 
-1. **Inizializzato** da `proposta-tesi.md` + `feedback-claude.md`
-2. **Aggiornato** ad ogni ingest di paper, call o approfondimento
-3. **Non riscritto** — ogni paper aggiunge, annota, integra. Le sezioni non scompaiono, si evolvono.
+Top-level thesis (owned by the Chief Architect agent, maintained by the
+Thesis Synthesizer):
 
-Struttura suggerita per lo scaffolding:
+> How does a self-referential cognitive architecture study and improve
+> its own components?
 
-```
-# Scaffolding Tesi — <Titolo provvisorio>
-
-## Domanda di ricerca
-## Ipotesi / claim principale
-## Struttura capitoli
-  ### Cap. 1 — ...
-  ### Cap. 2 — ...
-## Paper integrati
-## Tensioni aperte
-## Gap ancora da colmare
-## Prossimi passi
-```
+Six components, each with its own sub-thesis:
+Perception, Memory, Reasoning, Planning, Meta-Cognition, Auto-Research.
+Each component is simultaneously a piece of operational machinery and a
+research track studying that piece. See `agents/architecture.md` for the
+full org chart.
 
 ---
 
-## Tipi di entità
+## Source-of-truth split
 
-|Tipo|Posizione|Scopo|
+| Lives in git | Lives in Roam |
+|---|---|
+| Agent configs (`agents/<team>/<agent>/{agent.yaml,soul.md,heartbeat.md}`) | The thesis itself (`[[Scaffolding]]`) |
+| Skills and operating manuals (this file, `SKILL-*.md`) | All source pages (`[[S/...]]`) |
+| Architecture and flow diagrams | All concept pages |
+| Immutable raw sources (`raw/`) | Operational state — `[[Friction Log]]`, `[[Log]]`, `[[R/...]]` research tracks |
+| Roadmap, summaries | Glossary, conventions, overview |
+| The legacy flat-file wiki (`wiki/`, frozen 2026-06-10) | |
+
+If a fact is mutable and accumulates over time, it belongs in Roam.
+If a fact is structural and versioned by git, it belongs in the repo.
+
+The `wiki/` directory is the frozen flat-file thesis vault that preceded the
+Roam pivot. Do not resume ingesting into it; its content is migration input
+for Roam (see `bootstrap/README.md`).
+
+---
+
+## Roam conventions
+
+### Page naming
+
+| Pattern | Meaning | Example |
 |---|---|---|
-|**Source**|`wiki/sources/`|Sommario di un documento raw — fatti chiave, metadati, valore per la tesi|
-|**Concept**|`wiki/concepts/`|Un'idea teorica: definizione, termini correlati, fraintendimenti comuni|
-|**Analysis**|`wiki/analyses/`|Output sintetizzato: confronto, gap analysis, outline|
-|**Style Rule**|`wiki/style/`|Convenzione di scrittura: quando applicarla, esempi, eccezioni|
-|**Persona**|`wiki/personas/`|Un tipo di lettore/audience: obiettivi, livello di expertise, formato preferito|
+| `[[Capitalized Phrase]]` | Operational page | `[[Scaffolding]]`, `[[Glossary]]`, `[[Friction Log]]` |
+| `[[Component]]` | One of the six components | `[[Perception]]`, `[[Memory]]` |
+| `[[R/Component]]` | Research track for that component | `[[R/Perception]]` |
+| `[[S/<slug>]]` | A source (paper, call, deep-dive) — slug is kebab-case | `[[S/karpathy-llm-wiki]]` |
+| `[[C/<term>]]` | A theoretical concept | `[[C/episodic-memory]]` |
+| `[[A/<slug>]]` | An analysis (gap analysis, comparison, synthesized output) | `[[A/perception-gap-2026-05]]` |
 
----
+The `[[S/]]`, `[[C/]]`, `[[A/]]` namespacing is the resolution of an open
+design question — it gives a clean Datalog filter (`[?p :node/title ?t]
+[(clojure.string/starts-with? ?t "S/")]`) without colliding with prose mentions.
+Plain `[[Term]]` references in prose still work because they don't carry the
+prefix.
 
-## Formato pagina
+### Block structure
 
-Ogni pagina wiki deve avere questo frontmatter YAML:
+Every block represents one atomic claim or fact. Don't paste paragraphs into
+a single block — split on sentence boundaries when each sentence carries an
+independent claim. This makes blocks individually citable, queryable, and
+movable.
 
-```yaml
----
-title: <titolo pagina>
-type: source | concept | analysis | style | persona
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
-sources: [lista di file raw che hanno informato questa pagina]
-tags: [tag rilevanti]
----
+### Attributes (used as block-level metadata)
+
+Use Roam's `attribute::` syntax to make blocks Datalog-queryable:
+
+```
+type:: source
+created:: [[May 5th, 2026]]
+sources:: [[S/karpathy-llm-wiki]] [[S/cog-arch-survey-2025]]
+component:: [[Perception]]
+status:: draft | reviewed | integrated | superseded
 ```
 
-Seguito da:
+Canonical attribute keys:
+- `type::` — `source | concept | analysis | rule | open-question | finding`
+- `component::` — one of the six component pages
+- `sources::` — backlinks to `[[S/...]]` pages this block depends on
+- `status::` — for findings/proposals
+- `confidence::` — `low | medium | high` (for claims that aren't certain)
+- `decision-date::` — when a decision was made
 
-1. **Sommario in una riga** (usato in index.md)
-2. **Corpo** — strutturato con intestazioni, liste e tabelle come appropriato
-3. Sezione **Related pages** in fondo — link `[[nome-pagina]]`
+If a new attribute key is needed, add it to `[[Conventions]]` first.
 
----
+### Backlinks
 
-## Workflow
+Every claim that references another page must link via `[[...]]`. Don't
+write prose like "as shown by Karpathy's wiki pattern" — write
+"as shown by [[S/karpathy-llm-wiki]]". This is what makes the graph
+queryable.
 
-### Ingest paper
-
-Quando l'utente dice "ingest paper [nome]" o passa un file da `raw/papers/`:
-
-→ Segui il workflow completo in [[SKILL-thesis-ingest]]
-
-Sintesi: leggi scaffolding → estrai valore → aggiorna scaffolding → crea/aggiorna pagine → aggiorna index e log.
-
----
-
-### Ingest call
-
-Quando l'utente dice "ingest call [nome]" o passa un file da `raw/calls/`:
-
-1. Leggi la trascrizione
-2. Estrai: decisioni prese, domande aperte, nuovi direzioni di ricerca, termini emersi
-3. Crea `wiki/sources/<call-slug>.md`
-4. Identifica se la call impatta lo scaffolding (nuova direzione? modifica a un capitolo? tensione rispetto a un paper?) — aggiorna se necessario
-5. Aggiorna glossario se emergono termini nuovi
-6. Aggiorna `wiki/index.md` e `wiki/log.md`
+When you create or update a page, do a backlink sweep: open every linked
+page and confirm it has a return reference back to this page where
+appropriate. The Memory team owns enforcing this; everyone else is
+expected to do it best-effort.
 
 ---
 
-### Ingest approfondimento
+## Workflows
 
-Quando l'utente passa un file da `raw/project/approfondimenti/`:
+### Ingest a new source (paper / call / deep-dive)
 
-1. Leggi il file
-2. Estrai i claim principali e il loro rapporto con la tesi
-3. Crea `wiki/sources/<tema-slug>.md` o aggiorna una pagina concept esistente
-4. Aggiorna scaffolding se l'approfondimento chiarisce o sposta qualcosa
-5. Aggiorna index e log
+Owner: Perception team.
 
----
+1. Place the raw file in `raw/papers/<slug>/`, `raw/calls/<slug>.md`, or
+   `raw/project/approfondimenti/<slug>.md`. Never modify these after
+   creation.
+2. Read the raw file end-to-end. Do not skim.
+3. Create `[[S/<slug>]]` in Roam with attributes:
+   ```
+   type:: source
+   raw-path:: raw/papers/<slug>/
+   created:: [[<today>]]
+   authors:: <names>
+   year:: <YYYY>
+   relevance:: <one-line of why this matters to the thesis>
+   ```
+4. Under that page, create blocks for:
+   - Key claims (one block per claim, each with `confidence::` if non-obvious)
+   - Terminology introduced (cross-link to `[[Glossary]]`, propose new
+     `[[C/...]]` pages if missing)
+   - Tensions with existing sources (block-link to the conflicting block)
+   - Implications for the thesis (one block per implication, link to the
+     relevant `[[Component]]` or `[[Scaffolding]]` section)
+5. Append an entry to `[[Log]]`:
+   `[[<today>]] ingest [[S/<slug>]] — <one-line summary>`
+6. If the source materially changes the argument, open a proposal block on
+   the relevant `[[Component]]` page tagged `#proposal` for the Component
+   Lead to review in their next heartbeat.
+
+### Ingest into a research track (`[[R/<Component>]]`)
+
+Owner: that component's Researcher.
+
+Research tracks accept rougher material than source pages. Dump
+unstructured notes, half-formed hypotheses, and exploration. The
+Researcher's heartbeat job is to refine these into either: a new `[[C/...]]`
+concept page, a proposal block on the `[[Component]]` page, or a deletion
+(with reason in `[[Log]]`).
 
 ### Query
 
-Quando l'utente fa una domanda sulla tesi o sui materiali:
+Owner: any agent or human.
 
-1. Leggi `wiki/index.md` per identificare le pagine rilevanti
-2. Leggi quelle pagine (incluso scaffolding se rilevante)
-3. Sintetizza una risposta chiara con citazioni alle pagine wiki
-4. Chiedi: "Vuoi che archivi questa risposta come pagina wiki?" — se sì, salva in `wiki/analyses/`
-5. Appendi un'entry al log:
-    
-    ```
-    ## [YYYY-MM-DD] query | <sommario domanda>Pagine consultate: ...Output archiviato: sì/no — <filename se sì>
-    ```
-    
-
----
+1. Search Roam for relevant pages (start from `[[Overview]]`,
+   `[[Scaffolding]]`, the relevant `[[Component]]`).
+2. Use Datalog queries for structural questions
+   (e.g. "all blocks with `status:: draft` referenced from
+   `[[Scaffolding]]`").
+3. Synthesize an answer with citations as `[[S/...]]` and `((block-ref))`
+   links.
+4. If the answer is novel and worth keeping, save it as `[[A/<slug>]]`.
+5. Append to `[[Log]]`:
+   `[[<today>]] query "<question>" — answered, archived as [[A/<slug>]]`
 
 ### Lint
 
-Quando l'utente dice "lint la wiki":
+Owner: Meta-Cognition team.
 
-1. Leggi tutte le pagine wiki
-2. Segnala:
-    - Contraddizioni tra pagine (soprattutto tra paper diversi)
-    - Claim nello scaffolding non supportati da nessuna source
-    - Pagine orfane (nessun link in entrata da altre pagine)
-    - Concetti menzionati ma senza propria pagina
-    - Termini usati in modo inconsistente rispetto al glossario
-    - Paper integrati nello scaffolding ma la cui source page manca o è incompleta
-3. Proponi fix e chiedi quali applicare
-4. Appendi entry al log:
-    
-    ```
-    ## [YYYY-MM-DD] lintProblemi trovati: ...Fix applicati: ...
-    ```
-    
+Triggered by Meta-Cognition heartbeats and on user request. Checks:
 
----
+- Contradictions: blocks that disagree on the same fact (cross-source).
+- Orphans: pages with no inbound `[[...]]` references.
+- Missing concept pages: terms used as `[[C/...]]` that don't exist.
+- Glossary drift: terms used inconsistently with their `[[Glossary]]`
+  definition.
+- Stale findings: blocks with `status:: integrated` whose source pages have
+  been superseded.
+- Scaffolding gaps: claims in `[[Scaffolding]]` not backed by any
+  `[[S/...]]` source.
 
-## Convenzioni di cross-referencing
+Findings go to `[[Friction Log]]` for the relevant team's Lead to triage.
 
-- Usa sempre `[[nome-file-senza-estensione]]` per i link interni
-- Quando crei o aggiorni una pagina, scansiona le pagine correlate e aggiungi back-link
-- Il glossario e l'overview devono linkare ogni pagina entità principale
-- Lo scaffolding deve linkare ogni source integrata
+### Friction → Auto-Research
+
+Owner: Auto-Research team.
+
+Every agent appends to `[[Friction Log]]` when something blocks them.
+When the friction count for a component crosses a threshold (initial:
+5 unresolved frictions in a 7-day window), the AutoRes Lead opens an
+investigation. See `agents/auto-research/autores-lead/heartbeat.md`.
 
 ---
 
-## Disciplina terminologica
+## Cross-team communication
 
-- Quando un nuovo termine appare in una fonte, aggiungilo a `wiki/glossary.md`
-- Se un termine entra in conflitto con una voce esistente, segnalalo esplicitamente
-- Usa sempre il termine canonico dal glossario in tutte le pagine wiki
-- Segnala varianti terminologiche tra paper diversi (es. autori diversi che chiamano la stessa cosa in modo diverso)
+All cross-team work flows through Paperclip's ticket system:
 
----
+- **Downward**: CEO → Managers → ICs via delegated issues.
+- **Upward**: ICs → Managers → CEO via issue updates and proposals.
+- **Cross-component**: Routed through the Integration Director. ICs do not
+  message ICs on other teams directly.
+- **Shared state**: The Roam graph. Agents read/write via the Roam MCP.
 
-## Session Start Checklist
-
-All'inizio di ogni sessione:
-
-1. Leggi questo file (CLAUDE.md)
-2. Leggi `wiki/index.md` per orientarti
-3. Leggi le ultime 5 entry in `wiki/log.md` per capire l'attività recente
-4. Leggi `wiki/scaffolding-tesi.md` per avere il quadro attuale della tesi
-5. Chiedi all'utente cosa vuole fare: ingest paper, ingest call, ingest approfondimento, query, lint, o altro
+When a Component Lead believes their team has produced something
+relevant to the top-level thesis, they file a proposal ticket to the
+Integration Director with: the proposal block link, why it's
+cross-cutting, and what they want reviewed. The Cross-Team Reviewer
+evaluates; the Thesis Synthesizer integrates approved items into
+`[[Scaffolding]]`.
 
 ---
 
-## Note
+## Session start checklist
 
-- Non indovinare la terminologia — controlla sempre `wiki/glossary.md`
-- Se una fonte contraddice la wiki, segnala la contraddizione esplicitamente prima di aggiornare
-- Preferisci aggiornare pagine esistenti piuttosto che crearne di nuove quando il contenuto ci sta
-- Titoli pagina coerenti con i filename (kebab-case per i filename)
-- Lo scaffolding è il cuore della wiki: ogni operazione di ingest deve chiedersi "questo cambia qualcosa nello scaffolding?"
-- La wiki è un repo git di markdown — tutto è versionato automaticamente
+Whether you're a heartbeat agent or a manual session:
+
+1. Read this file.
+2. Read `[[Overview]]` for the current state of the project.
+3. Read the last 5 entries in `[[Log]]` to see recent activity.
+4. Read `[[Scaffolding]]` for the current shape of the argument.
+5. If you're a component agent, read your `[[Component]]` page and your
+   `[[R/Component]]` track.
+6. Check `[[Friction Log]]` for unresolved items relevant to your role.
+7. Read your inbox (Paperclip tickets assigned to you).
+
+If Roam is not reachable (no MCP configured in this session), say so
+explicitly and fall back to repo-only work: agent configs, bootstrap pages,
+diagrams, raw sources. Do not resume the legacy flat-file wiki workflows.
+
+---
+
+## Operating principles
+
+1. **The log is the truth, Roam is the surface, the repo is the spec**
+   (ADR-001). The append-only event log (`files_mnemosyne/store/
+   events.jsonl`) wins on epistemic facts; Roam is where humans capture
+   input and read back the system's projections (`M/*`); when the
+   disagreement is about how the system should operate, the repo wins.
+2. **Block-level discipline.** One claim per block. Cite via `[[...]]` and
+   `((block-ref))`. Atomic blocks are reusable; paragraphs are not.
+3. **Don't rewrite, evolve.** When new evidence arrives, append, annotate,
+   and supersede — don't silently overwrite. `status:: superseded` is
+   preferred over deletion.
+4. **Surface tensions, don't suppress them.** Two sources that disagree is
+   a finding, not a problem. Make the disagreement explicit and let the
+   Reasoning team handle it.
+5. **The system is the experiment.** Every operational decision is a data
+   point for the meta-thesis. Log what you decided and why.
+
+---
+
+## Open conventions still to ratify
+
+These are unresolved as of this writing — the first agent to encounter
+them in practice should propose a resolution on `[[Conventions]]` and
+flag it for the Integration Director.
+
+- **PDF storage**: Roam can't host PDFs natively. Current default: keep
+  PDFs in `raw/papers/<slug>/` in the repo, reference from Roam via
+  `raw-path::` attribute on the `[[S/...]]` page.
+- **Auto-Research trigger threshold**: Initial value 5 frictions / 7 days
+  is a guess. Tune based on observed throughput.
+- **Model selection per role**: All agents currently use
+  `claude-sonnet-4-6`. The CEO and Thesis Synthesizer may benefit from
+  Opus; Researchers and Builders may be cost-effective on Haiku for
+  bulk work.

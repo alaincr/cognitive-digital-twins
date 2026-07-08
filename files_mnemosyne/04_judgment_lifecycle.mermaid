@@ -1,0 +1,23 @@
+stateDiagram-v2
+  state "JUDGMENT lifecycle" as JM {
+    [*] --> Scored : conformal gate on logprobs
+    Scored --> Candidate : singleton prediction set
+    Scored --> Abstained : multi-label set or order disagreement
+    Abstained --> Escalated : next rung picks it up
+    Escalated --> Candidate : anchor verdict returns as judgment
+    Candidate --> Accepted : T0 or T1 single pass · T2 panel k-of-n · anchor supremacy
+    Candidate --> Rejected : panel dissent resolved against
+    Accepted --> Retracted : cohort retraction (judge found biased)
+    Accepted --> [*]
+    Retracted --> [*]
+  }
+  state "JUDGE lifecycle" as GM {
+    [*] --> Calibrating : anchor-labeled calset
+    Calibrating --> Active : temperature + q-hat written
+    Active --> Quarantined : drift over theta (reversible event)
+    Quarantined --> Active : recalibrated
+    Quarantined --> Retired : cohort retracted · entry kept, never deleted
+    Active --> Shadow : candidate v(n+1) deployed in parallel
+    Shadow --> Active : promote-check PROMOTE (recalibrate fresh)
+    Retired --> [*]
+  }

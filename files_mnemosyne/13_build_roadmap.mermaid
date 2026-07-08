@@ -1,0 +1,22 @@
+flowchart LR
+  classDef done fill:#c6f6d5,stroke:#2f855a,stroke-width:2px
+  classDef next fill:#fefcbf,stroke:#975a16,stroke-width:2px
+  classDef later fill:#ebf8ff,stroke:#2b6cb0
+
+  S1["1 · Substrate spec + reference impl<br/>mnemosyne.clj · rules.clj — DONE (hand-checked)"]:::done
+  S2["2 · Judgment contract + Datalog layer<br/>microjudge_contract · judges.clj — DONE"]:::done
+  S3["3 · Harness + prompts + schemas<br/>judge_harness · judge_prompts — DONE (self-tested)"]:::done
+  S4["4 · Calibration loop<br/>roam_harvest · anchor_label — DONE (demo-run)"]:::done
+  S5["5 · Ops service<br/>ingest.clj · runbooks — DONE (hand-checked)"]:::done
+  S6["6 · Distillation pipeline<br/>distill_judge — DONE (self-tested)"]:::done
+  N1["7 · FIRST LIVE JUDGE: harvest real graph →<br/>anchor-label edge_type → review →<br/>calibrate qwen-a → watch abstention rate"]:::next
+  N2["8 · Pre-filter wiring:<br/>dreamer surprisal → candidates"]:::next
+  L1["9 · Fluree L3 adapter:<br/>signed commits · SHACL port · branches"]:::later
+  L2["10 · Propositionizer pipeline →<br/>faithful calset top-up"]:::later
+  L3["11 · First distillation pass<br/>(at ~1k admissible examples)"]:::later
+  L4["12 · Belief layer live:<br/>grounded-extension fixpoint over<br/>promoted discourse edges"]:::later
+
+  S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> N1 --> N2 --> L1
+  N1 --> L2
+  N2 --> L3
+  L1 --> L4

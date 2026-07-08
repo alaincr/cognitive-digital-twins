@@ -1,0 +1,30 @@
+# B6 (judge infra): the REAL judge config holds live endpoints and is
+# generated from judges_config.example.yaml. Keep it out of git; API keys
+# come from the environment (${JUDGE_API_KEY}, ${ANCHOR_API_KEY}).
+judges_config.yaml
+
+# B6 spend ledger + runtime ops state (per-run, not versioned).
+ops/spend.jsonl
+
+# B4 durable/runtime state (per-run, not versioned; the journal is regenerated
+# from the outboxes and is machine-local). Fixtures under fixtures/ ARE tracked.
+store/
+ops/cycles/
+ops/logs/
+*.jsonl.offset
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Clojure classpath cache (local)
+.cpcache/
+
+# API tokens (NEVER commit)
+secrets/
+
+# B9 probe ledger: intimate data (measured owner consistency) - local only (R5)
+ops/probe_ledger.jsonl
+
+# B1 runtime: snapshots/deltas contain the OWNER'S ENTIRE GRAPH - never commit
+sync/

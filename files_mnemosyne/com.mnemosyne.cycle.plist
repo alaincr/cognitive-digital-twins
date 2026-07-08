@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd unit for the Mnemosyne nightly cycle (PRD B4 §FR-3, ANNEX §3).
+
+  Install:
+    cp com.mnemosyne.cycle.plist ~/Library/LaunchAgents/
+    # EDIT the two absolute paths below to your checkout first.
+    launchctl load  ~/Library/LaunchAgents/com.mnemosyne.cycle.plist
+    launchctl start com.mnemosyne.cycle     # optional immediate test run
+
+  Reload after editing:
+    launchctl unload ~/Library/LaunchAgents/com.mnemosyne.cycle.plist
+    launchctl load   ~/Library/LaunchAgents/com.mnemosyne.cycle.plist
+
+  IMPORTANT — do NOT use cron on macOS: cron does not wake a sleeping Mac, so a
+  laptop asleep at 02:00 silently misses the cycle. launchd runs the missed job
+  at next wake (StartCalendarInterval catch-up). If the Mac must stay awake for
+  the run, either keep it plugged in with "Prevent automatic sleeping" (System
+  Settings > Battery > Options), or wrap the command in `caffeinate -s`:
+      <string>caffeinate -s /ABSOLUTE/PATH/TO/cycle.sh --yes</string>
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.mnemosyne.cycle</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-lc</string>
+    <!-- EDIT: absolute path to your checkout of files_mnemosyne -->
+    <string>cd /ABSOLUTE/PATH/TO/files_mnemosyne &amp;&amp; caffeinate -s ./cycle.sh --yes</string>
+  </array>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>2</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+
+  <!-- keep the run's working dir stable; logs land under ops/logs/ -->
+  <!-- EDIT: absolute path to your checkout of files_mnemosyne -->
+  <key>WorkingDirectory</key>
+  <string>/ABSOLUTE/PATH/TO/files_mnemosyne</string>
+
+  <key>StandardOutPath</key>
+  <string>/ABSOLUTE/PATH/TO/files_mnemosyne/ops/logs/cycle.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/ABSOLUTE/PATH/TO/files_mnemosyne/ops/logs/cycle.err.log</string>
+
+  <key>RunAtLoad</key>
+  <false/>
+  <key>ProcessType</key>
+  <string>Background</string>
+</dict>
+</plist>

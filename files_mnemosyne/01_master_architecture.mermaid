@@ -1,0 +1,55 @@
+flowchart TB
+  classDef l1 fill:#faf5ff,stroke:#805ad5,stroke-width:2px
+  classDef l2 fill:#ebf8ff,stroke:#2b6cb0,stroke-width:2px
+  classDef l3 fill:#f0fff4,stroke:#2f855a,stroke-width:2px
+  classDef jl fill:#fff5f7,stroke:#9b2c2c,stroke-width:2px
+  classDef sw fill:#fefcbf,stroke:#975a16
+
+  subgraph L1["L1 · RECURSIVE INFERENCE — RLM style"]
+    ROOT["root model sees metadata only<br/>(anchor LLM, API or local)"]
+    REPL["REPL over the graph<br/>peek and decompose are Datalog queries"]
+    SUB["recursive sub-calls on slices<br/>results written back as facts"]
+    ROOT --> REPL --> SUB
+  end
+
+  subgraph JL["Regime ladder — B-half judgment layer"]
+    LADDER["A heuristics → B classifiers →<br/>B½ small-LLM judges → C anchor<br/>(judge_harness.py + vLLM)"]
+  end
+
+  subgraph L2["L2 · EVENT-SOURCED RUNTIME — ActiveGraph style"]
+    BEH["behaviors subscribe to<br/>graph-shape patterns"]
+    FIX["reactive FIXPOINT loop<br/>= lint loop = semi-naive eval"]
+    CONS["consolidator (ingest.clj)<br/>single writer, promotion gate"]
+    PROJ["projection = fold(log)<br/>DataScript 1.7.3 working db"]
+    CACHE["content-addressed<br/>model and tool response cache"]
+    BEH --> FIX
+    PROJ --> BEH
+  end
+
+  subgraph L3["L3 · IMMUTABLE STORE — datom family"]
+    LOG[("APPEND-ONLY EVENT LOG<br/>today: EDN snapshot ·<br/>target: Fluree signed ledger")]
+    RULES["recursive Datalog rules<br/>(rules.clj — runs in projection)"]
+    SHACL["SHACL shapes = linter<br/>(Fluree, transaction-time)"]
+    BR["git-like branches<br/>= fork-and-diff, durable"]
+    LOG --> RULES
+    LOG --> BR
+  end
+
+  EMERG["Propagation and emergence layer<br/>diffuse signal → threshold → reify<br/>summaries · beliefs · trails · compounds"]
+
+  SUB -->|"append facts"| LOG
+  REPL -->|"query"| PROJ
+  LADDER -->|"judgments as typed facts"| CONS
+  CONS -->|"promote domain events"| LOG
+  FIX -->|"emit events"| LOG
+  LOG -->|"fold / replay"| PROJ
+  CACHE -.-> LOG
+  SHACL -.->|"gates writes"| LOG
+  LOG --> EMERG
+  EMERG -->|"reified nodes"| LOG
+
+  class L1 l1
+  class L2 l2
+  class L3 l3
+  class JL jl
+  class EMERG sw

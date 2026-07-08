@@ -1,0 +1,49 @@
+[
+  {
+    "title": "M/Eval/Seeded",
+    "edit-time": 1783000000000,
+    "children": [
+      {
+        "uid": "seed-01-a",
+        "string": "Le registre des traitements est obligatoire dès le premier salarié. [[RGPD]] [[Article 30]]",
+        "create-time": 1783000000000,
+        "edit-time": 1783000000000,
+        "children": []
+      },
+      {
+        "uid": "seed-01-b",
+        "string": "Le registre n'est obligatoire qu'au-delà de 250 salariés, sauf exceptions. [[RGPD]] [[Article 30]]",
+        "create-time": 1783000000000,
+        "edit-time": 1783000000000,
+        "children": []
+      },
+      {
+        "uid": "seed-02-a",
+        "string": "La base légale de la prospection B2B est le consentement préalable explicite. [[RGPD]] [[Consentement]]",
+        "create-time": 1783000000000,
+        "edit-time": 1783000000000,
+        "children": []
+      },
+      {
+        "uid": "seed-02-b",
+        "string": "La base légale de la prospection B2B est l'intérêt légitime, sans consentement. [[RGPD]] [[Consentement]]",
+        "create-time": 1783000000000,
+        "edit-time": 1783000000000,
+        "children": []
+      }
+    ]
+  },
+  {
+    "title": "RGPD",
+    "edit-time": 1783000000000,
+    "children": [
+      {
+        "uid": "rgpd-hub",
+        "string": "Hub réglementaire de référence.",
+        "create-time": 1748000000000,
+        "edit-time": 1748000000000,
+        "children": []
+      }
+    ]
+  }
+]

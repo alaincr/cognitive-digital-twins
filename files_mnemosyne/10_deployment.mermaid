@@ -1,0 +1,43 @@
+flowchart TB
+  classDef mac fill:#ebf8ff,stroke:#2b6cb0
+  classDef gpu fill:#e9d8fd,stroke:#805ad5
+  classDef nas fill:#c6f6d5,stroke:#2f855a
+  classDef proc fill:#fefcbf,stroke:#975a16
+
+  subgraph TS["Tailscale mesh (MagicDNS)"]
+    subgraph MAC["Mac M1 Pro — MBP-de-alain"]
+      ROAM["Roam client (DataScript) ·<br/>exports for harvest"]:::proc
+      HERM["Hermes coordination ·<br/>Claude Code"]:::proc
+      CONSOL["consolidator JVM —<br/>clojure -M -m mnemosyne.ingest ops/"]:::proc
+    end
+    subgraph MB["Machine B — Ryzen, 128 GB, 2 × RTX 3090 (prefill cluster)"]
+      VQ["vLLM :8000 Qwen3-8B judge<br/>--enable-prefix-caching"]:::proc
+      VG["vLLM :8001 Gemma-3-12B judge"]:::proc
+      QLR["QLoRA training runs<br/>(peft · trl · bitsandbytes)"]:::proc
+    end
+    subgraph MA["Machine A — dual EPYC, 256 GB, 1 × RTX 3090 (decode cluster)"]
+      VP["vLLM :8000 Phi-4-mini judge"]:::proc
+      RUN["judge runner —<br/>judge_harness.py loops"]:::proc
+    end
+    subgraph NS["NAS — TrueNAS Scale + ZFS (planned)"]
+      OPS[("ops/ shared dir:<br/>outbox · contexts · accepted ·<br/>escalations · anchor_outbox")]:::proc
+      LEDG[("Fluree ledger storage<br/>content-addressed commits<br/>(file or S3-compatible)")]:::proc
+      SVC[("Hermes services:<br/>Postgres · Redis · MinIO")]:::proc
+    end
+  end
+  ANCH["Anchor LLM<br/>(API, or large local model)"]
+
+  ROAM -->|"graph.json"| RUN
+  RUN -->|"echo-score calls"| VQ
+  RUN --> VG
+  RUN --> VP
+  RUN -->|"JSONL append"| OPS
+  CONSOL -->|"tail + promote"| OPS
+  CONSOL -->|"signed commits (target)"| LEDG
+  RUN -.->|"escalations + sampling"| ANCH
+  QLR -.->|"adapters → new judges"| VQ
+
+  class MAC mac
+  class MB gpu
+  class MA gpu
+  class NS nas

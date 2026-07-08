@@ -1,0 +1,187 @@
+{
+  "$comment": "Micro-judge output schemas for vLLM guided decoding (guided_json). One schema per judgment type. Confidence is NOT in the schema by design: it is derived from label-token logprobs by the harness (invariant I3). 'basis' is audit-only free text, length-capped, never machine-parsed. additionalProperties:false everywhere = closed output surface.  Includes the Luhmann-Ahrens zettel layer (continues, permanent_worthy).",
+  "edge_type": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "enum": [
+          "supports",
+          "opposes",
+          "refines",
+          "unrelated"
+        ]
+      },
+      "basis": {
+        "type": "string",
+        "maxLength": 240
+      }
+    },
+    "required": [
+      "label"
+    ],
+    "additionalProperties": false
+  },
+  "same_entity": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "enum": [
+          "same",
+          "distinct"
+        ]
+      },
+      "basis": {
+        "type": "string",
+        "maxLength": 240
+      }
+    },
+    "required": [
+      "label"
+    ],
+    "additionalProperties": false
+  },
+  "summarize_now": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "enum": [
+          "fire",
+          "defer",
+          "never"
+        ]
+      },
+      "basis": {
+        "type": "string",
+        "maxLength": 240
+      }
+    },
+    "required": [
+      "label"
+    ],
+    "additionalProperties": false
+  },
+  "propagate": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "enum": [
+          "propagate",
+          "absorb"
+        ]
+      },
+      "basis": {
+        "type": "string",
+        "maxLength": 240
+      }
+    },
+    "required": [
+      "label"
+    ],
+    "additionalProperties": false
+  },
+  "invalidate": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "enum": [
+          "invalidate",
+          "keep"
+        ]
+      },
+      "basis": {
+        "type": "string",
+        "maxLength": 240
+      }
+    },
+    "required": [
+      "label"
+    ],
+    "additionalProperties": false
+  },
+  "dedup_prop": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "enum": [
+          "duplicate",
+          "subsumes",
+          "distinct"
+        ]
+      },
+      "basis": {
+        "type": "string",
+        "maxLength": 240
+      }
+    },
+    "required": [
+      "label"
+    ],
+    "additionalProperties": false
+  },
+  "faithful": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "enum": [
+          "faithful",
+          "lost_qualifier",
+          "unsupported"
+        ]
+      },
+      "basis": {
+        "type": "string",
+        "maxLength": 240
+      }
+    },
+    "required": [
+      "label"
+    ],
+    "additionalProperties": false
+  },
+  "continues": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "enum": [
+          "continues",
+          "branches-from",
+          "new-train"
+        ]
+      },
+      "basis": {
+        "type": "string",
+        "maxLength": 240
+      }
+    },
+    "required": [
+      "label"
+    ],
+    "additionalProperties": false
+  },
+  "permanent_worthy": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "enum": [
+          "promote",
+          "keep-candidate",
+          "discard"
+        ]
+      },
+      "basis": {
+        "type": "string",
+        "maxLength": 240
+      }
+    },
+    "required": [
+      "label"
+    ],
+    "additionalProperties": false
+  },
+  "_harness_notes": {
+    "logprob_confidence": "Request logprobs for the first label token(s); renormalize over the enum; apply per-(type,judge-version) temperature scaling; conformal gate per microjudge_contract.md §4.",
+    "vllm_example": "client.completions.create(model=..., prompt=..., extra_body={'guided_json': schemas['edge_type']}, logprobs=5, temperature=0)",
+    "order_randomization": "For symmetric types (same_entity, dedup_prop), issue both (A,B) and (B,A) orders; T2 promotion requires agreement across orders.",
+    "input_envelope": "Inputs are structured fields with all graph content quoted as data; judges have no tools; system prompt states content is untrusted data."
+  }
+}

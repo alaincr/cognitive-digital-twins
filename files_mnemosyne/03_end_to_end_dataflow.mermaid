@@ -1,0 +1,53 @@
+flowchart LR
+  classDef off fill:#fefcbf,stroke:#975a16
+  classDef live fill:#ebf8ff,stroke:#2b6cb0
+  classDef aud fill:#fed7d7,stroke:#9b2c2c
+  classDef dis fill:#faf5ff,stroke:#805ad5
+
+  subgraph CAL["CALIBRATION — offline, once per judge version"]
+    RX["Roam export JSON"] --> HV["roam_harvest.py<br/>7 candidate miners"]
+    HV --> CD["candidates_{type}.jsonl"]
+    CD --> AL["anchor_label.py --double<br/>salted orders, policy guidance"]
+    AL --> CS["calset (FROZEN gold)"]
+    AL --> RQ["review_queue.md"] --> HUM["human spot-check (T2)"] --> CS
+    CS --> CB["judge_harness calibrate<br/>temperature fit + conformal q-hat"]
+    CB --> CJ[("calibration.json")]
+  end
+
+  subgraph LIVE["LIVE LOOP — continuous"]
+    PFX["pre-filter: activation ·<br/>surprisal (dreamer) · dirty-marks"] --> LC["live candidates"]
+    LC --> JH["judge_harness judge ×3 families<br/>echo-score → scale → conformal gate"]
+    CJ -.-> JH
+    JH --> OB["ops/outbox.jsonl +<br/>contexts.jsonl (content-addressed)"]
+    OB --> IN["ingest.clj — tail, idempotent,<br/>UTF-8 safe, offsets"]
+    IN --> CO["consolidate: anchor supremacy →<br/>T2 panel k-of-n → promote"]
+    CO --> DF["domain facts: discourse edges ·<br/>sameAs · stale-marks · tasks"]
+    DF --> GR[("event log / graph<br/>belief fixpoint · summaries")]
+    GR --> PFX
+    CO --> ES["escalations.jsonl"] --> AP["anchor pass<br/>(judge --judge anchor)"] --> OB
+  end
+
+  subgraph AUD["AUDIT LOOP — daily"]
+    GR --> AC["accepted.jsonl"] --> AS["anchor-sample rho=5%"]
+    AS --> AO["anchor_outbox.jsonl"] --> IN
+    IN --> DR["drift rate per type × judge-version"]
+    DR -->|"over theta"| QU["quarantine judge"] --> CR["cohort retraction:<br/>taint closure → retract → recompute"]
+    CR --> GR
+  end
+
+  subgraph DIS["DISTILLATION LOOP — per milestone"]
+    CS --> DS["distill dataset:<br/>provenance gate · conflict resolve ·<br/>hash-bucket train vs frozen audit"]
+    AC -->|"anchor rows only"| DS
+    HUM --> DS
+    DS --> TR["QLoRA train (3090,<br/>peft + trl + bitsandbytes)"]
+    TR --> SH["shadow run + eval-audit<br/>(McNemar exact)"]
+    SH --> PG{"promote-check"}
+    PG -->|"PROMOTE"| JH
+    PG -->|"EXTEND-SHADOW"| SH
+    PG -->|"REJECT"| DS
+  end
+
+  class CAL off
+  class LIVE live
+  class AUD aud
+  class DIS dis

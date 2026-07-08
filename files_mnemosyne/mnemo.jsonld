@@ -1,0 +1,28 @@
+{
+  "@context": {
+    "mnemo": "https://mnemosyne.dev/ns#",
+    "from":      {"@id": "mnemo:from", "@type": "@id"},
+    "to":        {"@id": "mnemo:to", "@type": "@id"},
+    "edgeType":  {"@id": "mnemo:edgeType"},
+    "stratum":   {"@id": "mnemo:stratum"},
+    "kind":      {"@id": "mnemo:kind"},
+    "faithful":  {"@id": "mnemo:faithful"},
+    "continues": {"@id": "mnemo:continues", "@type": "@id"},
+    "trainHead": {"@id": "mnemo:trainHead"},
+    "keyword":   {"@id": "mnemo:keyword"},
+    "entry":     {"@id": "mnemo:entry", "@type": "@id"},
+    "judge":         {"@id": "mnemo:judge"},
+    "contextHash":   {"@id": "mnemo:contextHash"},
+    "calVersion":    {"@id": "mnemo:calVersion"},
+    "label":         {"@id": "mnemo:label"},
+    "legalBasis":    {"@id": "mnemo:legalBasis"},
+    "stale":     {"@id": "mnemo:stale"},
+    "parent":    {"@id": "mnemo:parent", "@type": "@id"},
+    "status":    {"@id": "mnemo:status"},
+    "basis":     {"@id": "mnemo:basis", "@type": "@id"},
+    "text":      {"@id": "mnemo:text"},
+    "mentions":  {"@id": "mnemo:mentions", "@type": "@id"},
+    "fromJudgment": {"@id": "mnemo:fromJudgment", "@type": "@id"}
+  },
+  "$comment": "mnemo:fromJudgment aligns conceptually with prov:wasGeneratedBy; prov: triples are NOT emitted in v1 (documented alignment only)."
+}

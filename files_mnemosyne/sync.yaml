@@ -1,0 +1,5 @@
+# B1 roam_sync config — token is NEVER read from this file (FR-1);
+# it comes from ROAM_API_TOKEN or --token-file secrets/roam_remote.token
+graph: My_base
+sync_dir: sync
+rate_delay: 1.0

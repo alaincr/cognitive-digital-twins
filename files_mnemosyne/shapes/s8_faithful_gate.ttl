@@ -1,0 +1,11 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix mnemo: <https://mnemosyne.dev/ns#> .
+@prefix msh: <https://mnemosyne.dev/shapes#> .
+# origin: zettel_addendum §1 (faithful gate before permanence)
+msh:S8 a sh:NodeShape ;
+  sh:targetClass mnemo:PermanentNote ;
+  sh:property msh:S8p .
+msh:S8p a sh:PropertyShape ;
+  sh:path mnemo:faithful ; sh:hasValue true ;
+  sh:severity sh:Violation ;
+  sh:message "Permanent note has not passed the faithfulness gate: mnemo:faithful must be true." .
