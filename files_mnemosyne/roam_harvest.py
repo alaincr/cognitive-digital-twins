@@ -158,10 +158,54 @@ def is_eval_page(title: str) -> bool:
     return isinstance(title, str) and title.startswith("M/")
 
 
+# ---------------------------------------------------------------------------
+# Owner tag policy (stated by the owner, 2026-07-07; also in [[Conventions]]):
+#   - {{[[TODO]]}}/{{[[DONE]]}} blocks are tasks to execute, not knowledge —
+#     excluded (with their subtrees) from all epistemic mining.
+#   - #PROGRAM / #TIMING (daily organisation) and #PRIORITY (weekly tasks):
+#     the whole SUBTREE under a tagged block is organisational — excluded.
+#   - #PN ("permanent note"): distilled knowledge the owner feels strongly
+#     about. PRIME material: exempt from the exclusions above, and marked
+#     so downstream miners can privilege it (permanent_worthy kind "pn").
+# ---------------------------------------------------------------------------
+
+TODO_RE = re.compile(r"\{\{\[?\[?(?:TODO|DONE)\]?\]?\}\}")
+ORG_TAG_RE = re.compile(r"#(?:\[\[)?(?:PROGRAM|TIMING|PRIORITY)(?:\]\])?\b")
+PN_RE = re.compile(r"#(?:\[\[)?PN(?:\]\])?\b")
+
+
+def _owner_policy(g: Graph):
+    """(excluded_uids, pn_uids) — cached on the graph (computed once)."""
+    cached = getattr(g, "_owner_policy", None)
+    if cached is not None:
+        return cached
+    excluded, pn = set(), set()
+    for uid, b in g.blocks.items():
+        s = b["string"]
+        if PN_RE.search(s):
+            pn.add(uid)
+        if TODO_RE.search(s) or ORG_TAG_RE.search(s):
+            excluded.add(uid)
+            excluded.update(g.all_under(b.get("children", [])))
+    excluded -= pn                     # PN outranks organisational context
+    g._owner_policy = (excluded, pn)
+    return g._owner_policy
+
+
+def is_org_block(g: Graph, uid: str) -> bool:
+    """True for blocks the owner policy removes from epistemic pools."""
+    return uid in _owner_policy(g)[0]
+
+
+def is_pn_block(g: Graph, uid: str) -> bool:
+    return uid in _owner_policy(g)[1]
+
+
 def content_blocks(g: Graph, lo=30, hi=500) -> List[dict]:
     return [b for b in g.blocks.values()
             if lo <= len(b["string"]) <= hi and not b["string"].startswith(">")
-            and not is_eval_page(b["page"])]
+            and not is_eval_page(b["page"])
+            and not is_org_block(g, b["uid"])]
 
 
 def h_edge_type(g: Graph, rng, cap: int) -> List[dict]:
@@ -316,6 +360,9 @@ def h_summarize_now(g: Graph, rng, cap: int, min_refs: int) -> List[dict]:
         n = len(citing)
         if n < 2 or is_eval_page(t):
             continue
+        citing = {u for u in citing if not is_org_block(g, u)}
+        if len(citing) < 2:
+            continue
         pages = {g.blocks[u]["page"] for u in citing}
         edits = sorted(g.blocks[u]["edit"] for u in citing)
         churn = days(edits[0], edits[-1]) if len(edits) > 1 else 0
@@ -347,7 +394,8 @@ def h_propagate(g: Graph, rng, cap: int) -> List[dict]:
         for r in list(b["refs"])[:2]:
             for ou in g.inbound.get(r, set()):
                 if (ou != b["uid"] and g.blocks[ou]["page"] != b["page"]
-                        and not is_eval_page(g.blocks[ou]["page"])):
+                        and not is_eval_page(g.blocks[ou]["page"])
+                        and not is_org_block(g, ou)):
                     neigh.append((ou, f"co-reference via [[{r}]]"))
                     break
         for nu, etype in neigh[:2]:
@@ -363,7 +411,7 @@ def h_propagate(g: Graph, rng, cap: int) -> List[dict]:
 def h_invalidate(g: Graph, rng, cap: int) -> List[dict]:
     rows = []
     for b in g.blocks.values():
-        if is_eval_page(b["page"]):
+        if is_eval_page(b["page"]) or is_org_block(g, b["uid"]):
             continue
         kids = [g.blocks[c] for c in b["children"]]
         if len(kids) < 2 or len(b["string"]) < 25:
@@ -389,7 +437,8 @@ def h_invalidate(g: Graph, rng, cap: int) -> List[dict]:
 def h_faithful(g: Graph, rng, cap: int) -> List[dict]:
     rows = []
     for b in g.blocks.values():
-        if not b["string"].startswith(">") or is_eval_page(b["page"]):
+        if (not b["string"].startswith(">") or is_eval_page(b["page"])
+                or is_org_block(g, b["uid"])):
             continue
         quote = b["string"].lstrip("> ").strip()
         pool = ([g.blocks[c] for c in g.blocks[b["parent"]]["children"]]
@@ -447,7 +496,7 @@ def h_continues(g: Graph, rng, cap: int) -> List[dict]:
             "meta": {"mode": mode}})
 
     for b in g.blocks.values():
-        if is_eval_page(b["page"]):
+        if is_eval_page(b["page"]) or is_org_block(g, b["uid"]):
             continue
         kids = [g.blocks[c] for c in b["children"]
                 if len(g.blocks[c]["string"]) >= 25]
@@ -493,7 +542,8 @@ def h_permanent_worthy(g: Graph, rng, cap: int) -> List[dict]:
     (discard-leaning), and source-bound restatements ('selon', '(source')
     which are literature, hence keep-candidate-leaning under the policy."""
     pool = [b for b in g.blocks.values() if 30 <= len(b["string"]) <= 450
-            and not b["string"].startswith(">") and not is_eval_page(b["page"])]
+            and not b["string"].startswith(">") and not is_eval_page(b["page"])
+            and not is_org_block(g, b["uid"])]
     # Bounded work: the old body rebuilt a len(pool) list PER item (O(n^2)
     # list construction — >180s on a real 195k-block pool). Process a
     # shuffled slice of at most 3*cap items (diversity preserved by the
@@ -501,8 +551,17 @@ def h_permanent_worthy(g: Graph, rng, cap: int) -> List[dict]:
     # draw neighbor samples by index without copying the pool.
     pool.sort(key=lambda b: b["uid"])
     rng.shuffle(pool)
+    # Owner policy: #PN blocks are self-declared distilled knowledge — the
+    # best promote-leaning material. Privilege them WITHOUT flooding: at most
+    # half the processed slice is PN (a calset needs discard-leaning rows
+    # too — 387/400 PN on the real graph destroyed label diversity).
+    pn_first = [b for b in pool if is_pn_block(g, b["uid"])]
+    others = [b for b in pool if not is_pn_block(g, b["uid"])]
+    slice_n = max(cap * 3, 60)
+    take_pn = min(len(pn_first), slice_n // 2, cap // 2 if cap >= 2 else 1)
+    work = pn_first[:take_pn] + others[:slice_n - take_pn]
     rows = []
-    for b in pool[:max(cap * 3, 60)]:
+    for b in work:
         best, bs = None, 0.0
         tried = 0
         while tried < min(len(pool) - 1, 40):
@@ -513,7 +572,8 @@ def h_permanent_worthy(g: Graph, rng, cap: int) -> List[dict]:
             sc = sim(b["string"], o["string"])
             if sc > bs:
                 best, bs = o, sc
-        kind = ("scaffold" if _SCAFFOLD_RE.search(b["string"]) else
+        kind = ("pn" if is_pn_block(g, b["uid"]) else
+                "scaffold" if _SCAFFOLD_RE.search(b["string"]) else
                 "source-bound" if re.search(r"\bselon\b|\(source", b["string"],
                                             re.IGNORECASE) else "declarative")
         rows.append({
@@ -656,7 +716,35 @@ def self_test() -> None:
         ok(not content_blocks(g) or all(
             not is_eval_page(b["page"]) for b in content_blocks(g)),
            "content_blocks() excludes M/* pages")
-    print("all roam_harvest self-tests passed (3 assertions)")
+
+    # --- owner tag policy (stated 2026-07-07) ------------------------------
+    long = "x" * 60
+    policy_export = [{"title": "P", "edit-time": 2, "children": [
+        {"uid": "org1", "string": f"#PROGRAM planning du jour {long}",
+         "create-time": 1, "edit-time": 2, "children": [
+             {"uid": "org1c", "string": f"sous-bloc organisationnel {long}",
+              "create-time": 1, "edit-time": 2, "children": []},
+             {"uid": "pn-in-org", "string": f"#PN idée distillée forte {long}",
+              "create-time": 1, "edit-time": 2, "children": []}]},
+        {"uid": "todo1", "string": "{{[[TODO]]}} acheter du café " + long,
+         "create-time": 1, "edit-time": 2, "children": []},
+        {"uid": "know1", "string": f"une vraie connaissance déclarative {long}",
+         "create-time": 1, "edit-time": 2, "children": []},
+    ]}]
+    gp = Graph.parse(policy_export)
+    uids = {b["uid"] for b in content_blocks(gp, 30, 500)}
+    ok("org1" not in uids and "org1c" not in uids,
+       "policy: #PROGRAM block AND its subtree excluded")
+    ok("todo1" not in uids, "policy: {{[[TODO]]}} block excluded")
+    ok("know1" in uids, "policy: plain declarative knowledge kept")
+    ok("pn-in-org" in uids,
+       "policy: #PN exempt — kept even inside an organisational subtree")
+    import random as _rnd
+    pw = h_permanent_worthy(gp, _rnd.Random(1), 10)
+    pn_rows = [r for r in pw if r["meta"]["kind"] == "pn"]
+    ok(len(pn_rows) == 1 and pn_rows[0]["subjects"] == ["pn-in-org"],
+       "policy: permanent_worthy marks #PN blocks kind='pn' (mined first)")
+    print("all roam_harvest self-tests passed (8 assertions)")
 
 
 def main() -> None:

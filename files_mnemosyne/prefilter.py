@@ -111,7 +111,8 @@ def dirty_blocks(g: RH.Graph, since_ms: int) -> List[dict]:
     return [b for b in g.blocks.values()
             if max(b["edit"], b["create"]) >= since_ms
             and len(b["string"]) >= 25
-            and not _is_eval_page(b["page"])]
+            and not _is_eval_page(b["page"])
+            and not RH.is_org_block(g, b["uid"])]
 
 
 def dirty_blocks_from_delta(g: RH.Graph, delta_path: pathlib.Path) -> List[dict]:
@@ -138,7 +139,8 @@ def dirty_blocks_from_delta(g: RH.Graph, delta_path: pathlib.Path) -> List[dict]
         b = g.blocks.get(uid)
         if b is None or uid in seen:
             continue
-        if len(b["string"]) >= 25 and not _is_eval_page(b["page"]):
+        if (len(b["string"]) >= 25 and not _is_eval_page(b["page"])
+                and not RH.is_org_block(g, b["uid"])):
             seen.add(uid)
             picked.append(b)
     return picked
@@ -147,7 +149,8 @@ def dirty_blocks_from_delta(g: RH.Graph, delta_path: pathlib.Path) -> List[dict]
 def new_blocks(g: RH.Graph, since_ms: int) -> List[dict]:
     return [b for b in g.blocks.values()
             if b["create"] >= since_ms and len(b["string"]) >= 25
-            and not _is_eval_page(b["page"])]
+            and not _is_eval_page(b["page"])
+            and not RH.is_org_block(g, b["uid"])]
 
 
 def novel_ref_pairs(g: RH.Graph, dirty: List[dict],
